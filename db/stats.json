@@ -1,23 +1,21 @@
 {
   "schema_version": "1.0.0",
-  "last_modified": "2026-06-05T11:41:44.845Z",
+  "last_modified": "2026-06-05T12:31:44.851Z",
   "progress": {
     "total_topics": 2,
-    "completed_topics": 2,
-    "completion_percentage": 100,
+    "completed_topics": 0,
+    "completion_percentage": 0,
     "module_progress": {
-      "5a73d8d2-8e45-41fa-af0f-9d5d93422bba": {
+      "19ee77ed-c12e-4ac6-8ebf-58606a3fe310": {
         "total": 2,
-        "completed": 2,
-        "percentage": 100
-      },
-      "049b0456-7c4b-44f1-9202-44ba279f3372": {
-        "total": 0,
         "completed": 0,
         "percentage": 0
       }
     },
-    "upcoming_lessons": []
+    "upcoming_lessons": [
+      "94f6e9ef-ae0b-485c-9a67-45d3d8fc8469",
+      "c80236d8-90ba-4290-b00c-730871e69c24"
+    ]
   },
   "streak": {
     "current": 1,
@@ -29,7 +27,10 @@
       "study_time_seconds": 0,
       "topics_completed": 0,
       "topics_viewed": [
-        "e8cc17f3-b5eb-40f9-be07-c59bd780bcc7"
+        "e8cc17f3-b5eb-40f9-be07-c59bd780bcc7",
+        "a6af3d8e-442c-4c8e-b91c-1fe2d76a2ba7",
+        "1204c8ea-cd25-497a-b60f-edf37180708d",
+        "64616595-9b3e-4bb7-b235-1fee0249b9c7"
       ]
     }
   },
@@ -76,7 +77,42 @@
       "duration_seconds": 0,
       "topics_interacted": [],
       "date": "2026-06-05"
+    },
+    {
+      "session_id": "4b2f8de2-a9ca-4abc-9a68-82f3ec2b6789",
+      "started_at": "2026-06-05T11:58:15.507Z",
+      "ended_at": null,
+      "duration_seconds": 0,
+      "topics_interacted": [],
+      "date": "2026-06-05"
+    },
+    {
+      "session_id": "0cd5f549-a96b-4790-9148-9f2314e987e4",
+      "started_at": "2026-06-05T12:02:12.342Z",
+      "ended_at": null,
+      "duration_seconds": 0,
+      "topics_interacted": [],
+      "date": "2026-06-05"
+    },
+    {
+      "session_id": "191ea1f3-8a18-464b-92ba-b4aae5352957",
+      "started_at": "2026-06-05T12:23:17.547Z",
+      "ended_at": null,
+      "duration_seconds": 0,
+      "topics_interacted": [],
+      "date": "2026-06-05"
+    },
+    {
+      "session_id": "96220778-c2f7-4437-b749-1c6a20fec38a",
+      "started_at": "2026-06-05T12:25:26.848Z",
+      "ended_at": null,
+      "duration_seconds": 0,
+      "topics_interacted": [],
+      "date": "2026-06-05"
     }
   ],
-  "upcoming_lessons": []
+  "upcoming_lessons": [
+    "94f6e9ef-ae0b-485c-9a67-45d3d8fc8469",
+    "c80236d8-90ba-4290-b00c-730871e69c24"
+  ]
 }
