@@ -1,22 +1,23 @@
 {
   "schema_version": "1.0.0",
-  "last_modified": "2026-06-05T07:11:24.203Z",
+  "last_modified": "2026-06-05T11:22:44.852Z",
   "progress": {
     "total_topics": 2,
-    "completed_topics": 1,
-    "completion_percentage": 50,
+    "completed_topics": 2,
+    "completion_percentage": 100,
     "module_progress": {
       "5a73d8d2-8e45-41fa-af0f-9d5d93422bba": {
         "total": 2,
-        "completed": 1,
-        "percentage": 50
+        "completed": 2,
+        "percentage": 100
       },
       "049b0456-7c4b-44f1-9202-44ba279f3372": {
         "total": 0,
         "completed": 0,
         "percentage": 0
       }
-    }
+    },
+    "upcoming_lessons": []
   },
   "streak": {
     "current": 1,
@@ -32,9 +33,42 @@
       ]
     }
   },
-  "weekly_study": {},
-  "sessions": [],
-  "upcoming_lessons": [
-    "e8cc17f3-b5eb-40f9-be07-c59bd780bcc7"
-  ]
+  "weekly_study": {
+    "2026-W23": {
+      "Mon": 0,
+      "Tue": 0,
+      "Wed": 0,
+      "Thu": 0,
+      "Fri": 0,
+      "Sat": 0,
+      "Sun": 0
+    }
+  },
+  "sessions": [
+    {
+      "session_id": "b5e74f9d-e388-43b2-af9f-99238aaaf390",
+      "started_at": "2026-06-05T11:02:23.470Z",
+      "ended_at": "2026-06-05T11:02:23.488Z",
+      "duration_seconds": 0,
+      "topics_interacted": [],
+      "date": "2026-06-05"
+    },
+    {
+      "session_id": "6e298769-fb87-4e71-b494-613101d76128",
+      "started_at": "2026-06-05T11:19:44.131Z",
+      "ended_at": "2026-06-05T11:19:44.149Z",
+      "duration_seconds": 0,
+      "topics_interacted": [],
+      "date": "2026-06-05"
+    },
+    {
+      "session_id": "a2613a5f-b07d-49f7-8055-b0c78fc5849a",
+      "started_at": "2026-06-05T11:21:44.822Z",
+      "ended_at": null,
+      "duration_seconds": 0,
+      "topics_interacted": [],
+      "date": "2026-06-05"
+    }
+  ],
+  "upcoming_lessons": []
 }
