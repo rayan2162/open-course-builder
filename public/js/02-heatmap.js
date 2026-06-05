@@ -24,9 +24,17 @@ const Heatmap = {
   _renderGrid() {
     const wrap = $('#heatmap-grid-wrap');
     if (!wrap) return;
-    const data = (AppState.stats && AppState.stats.heatmap) || [];
+    const data = (AppState.stats && AppState.stats.heatmap) || {};
     const map = Object.create(null);
-    data.forEach(d => { map[d.date] = d.minutes || 0; });
+    // Backend stores heatmap as an object { 'YYYY-MM-DD': { study_time_seconds, ... } }.
+    // Normalize to minutes keyed by date for the grid lookups below.
+    Object.keys(data).forEach(k => {
+      const entry = data[k] || {};
+      const seconds = typeof entry.study_time_seconds === 'number'
+        ? entry.study_time_seconds
+        : (entry.study_time || 0);
+      map[k] = Math.round(seconds / 60);
+    });
 
     const today = new Date();
     const start = new Date(today);
@@ -81,9 +89,15 @@ const Heatmap = {
   _renderChart() {
     const canvas = document.getElementById('weeklyChart');
     if (!canvas) return;
-    const data = (AppState.stats && AppState.stats.heatmap) || [];
+    const data = (AppState.stats && AppState.stats.heatmap) || {};
     const map = Object.create(null);
-    data.forEach(d => { map[d.date] = d.minutes || 0; });
+    Object.keys(data).forEach(k => {
+      const entry = data[k] || {};
+      const seconds = typeof entry.study_time_seconds === 'number'
+        ? entry.study_time_seconds
+        : (entry.study_time || 0);
+      map[k] = Math.round(seconds / 60);
+    });
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const today = new Date();
     const series = [];
