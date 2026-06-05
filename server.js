@@ -318,6 +318,14 @@ const upload = multerFactory({
   limits: { fileSize: 500 * 1024 * 1024 },
 });
 
+// In-memory multer for routes that need to read the file contents into memory
+// (e.g. course import). Avoids the per-route diskStorage destination validation
+// that requires a `topic_id` body field.
+const uploadMemory = multerFactory({
+  storage: multerFactory.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
+});
+
 // ---------- Express app ----------
 const app = express();
 app.use(cors());
@@ -886,23 +894,17 @@ app.post(
 // COURSE IMPORT
 app.post(
   '/api/course/import',
-  upload.single('file'),
+  uploadMemory.single('file'),
   asyncHandler(async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     let parsed;
     try {
-      const raw = await fse.readFile(req.file.path, 'utf-8');
+      const raw = req.file.buffer.toString('utf-8');
       parsed = JSON.parse(raw);
     } catch (err) {
-      try {
-        await fse.remove(req.file.path);
-      } catch (_) {}
       return res.status(400).json({ error: 'Invalid JSON file' });
     }
     if (!parsed.course || !parsed.course.name || !Array.isArray(parsed.course.modules)) {
-      try {
-        await fse.remove(req.file.path);
-      } catch (_) {}
       return res.status(400).json({ error: 'Invalid course structure (need course.name and course.modules)' });
     }
 
@@ -960,10 +962,6 @@ app.post(
 
       result = await readJSON(FILES.courseInfo);
     });
-    // Cleanup uploaded file
-    try {
-      await fse.remove(req.file.path);
-    } catch (_) {}
     res.json({ success: true, course: result });
   })
 );
@@ -1120,6 +1118,31 @@ app.get(
       branch,
       uncommitted_changes: uncommitted,
       remote_url,
+    });
+  })
+);
+
+app.get(
+  '/api/git/config',
+  asyncHandler(async (req, res) => {
+    // Frontend's GitModal._loadConfig() reads { repo, branch, token, enabled,
+    // author_name, author_email, last_status }. The server only persists
+    // remote_url, user_name, user_email via .env; we project them onto the
+    // shape the SPA expects, leaving the fields it owns locally (token,
+    // enabled, last_status) as null/false.
+    let last_status = null;
+    try {
+      const dbStats = await readJSON(FILES.stats);
+      if (dbStats && dbStats.git_last_status) last_status = dbStats.git_last_status;
+    } catch (_) {}
+    res.json({
+      repo: process.env.GIT_REMOTE_URL || '',
+      branch: 'main',
+      token: '',
+      enabled: !!process.env.GIT_REMOTE_URL,
+      author_name: process.env.GIT_USER_NAME || '',
+      author_email: process.env.GIT_USER_EMAIL || '',
+      last_status,
     });
   })
 );
