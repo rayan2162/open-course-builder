@@ -1,22 +1,22 @@
 {
   "schema_version": "1.0.0",
-  "last_modified": "2026-06-05T12:25:29.880Z",
+  "last_modified": "2026-06-05T12:33:09.271Z",
   "course": {
-    "id": "b6e9f63d-6d28-43fd-98a8-eb07a66fbc30",
-    "name": "Smoke Import Test 1780662329866",
+    "id": "c1cda3ed-8570-436b-bd96-2fc6514dc5b0",
+    "name": "Smoke Import Test 1780662789264",
     "description": "Created by smoke-ui",
-    "created_at": "2026-06-05T12:25:29.880Z",
-    "updated_at": "2026-06-05T12:25:29.880Z",
+    "created_at": "2026-06-05T12:33:09.271Z",
+    "updated_at": "2026-06-05T12:33:09.271Z",
     "modules": [
       {
-        "id": "19ee77ed-c12e-4ac6-8ebf-58606a3fe310",
+        "id": "5d700589-5856-4a36-a1de-9c2c5129c0c3",
         "name": "Module 1",
         "order": 1,
-        "created_at": "2026-06-05T12:25:29.880Z",
-        "updated_at": "2026-06-05T12:25:29.880Z",
+        "created_at": "2026-06-05T12:33:09.271Z",
+        "updated_at": "2026-06-05T12:33:09.271Z",
         "topics": [
           {
-            "id": "94f6e9ef-ae0b-485c-9a67-45d3d8fc8469",
+            "id": "2dede07e-88a5-4f8d-9c64-e281bffe980f",
             "name": "Topic A",
             "description": "",
             "order": 1,
@@ -28,11 +28,11 @@
             "is_completed": false,
             "completed_at": null,
             "notes": "",
-            "created_at": "2026-06-05T12:25:29.880Z",
-            "updated_at": "2026-06-05T12:25:29.880Z"
+            "created_at": "2026-06-05T12:33:09.271Z",
+            "updated_at": "2026-06-05T12:33:09.271Z"
           },
           {
-            "id": "c80236d8-90ba-4290-b00c-730871e69c24",
+            "id": "ae0d3be4-bb6e-4969-879e-2bb1ffb119a8",
             "name": "Topic B",
             "description": "",
             "order": 2,
@@ -44,8 +44,8 @@
             "is_completed": false,
             "completed_at": null,
             "notes": "",
-            "created_at": "2026-06-05T12:25:29.880Z",
-            "updated_at": "2026-06-05T12:25:29.880Z"
+            "created_at": "2026-06-05T12:33:09.271Z",
+            "updated_at": "2026-06-05T12:33:09.271Z"
           }
         ]
       }
