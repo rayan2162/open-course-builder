@@ -98,8 +98,21 @@ const Navbar = {
     const sessionActive = !!session.id;
     const sessionLabel = sessionActive ? formatDuration(session.elapsedSec) : '0m';
     const streak = (AppState.stats && AppState.stats.streak && AppState.stats.streak.current) || 0;
-    const miniHeat = (AppState.stats && AppState.stats.heatmap) || [];
-    const last5 = miniHeat.slice(-7);
+    const miniHeat = (AppState.stats && AppState.stats.heatmap) || {};
+    // Build the last-7-days minute series from the object shape
+    // { 'YYYY-MM-DD': { study_time_seconds, ... } }.
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    const last5 = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const k = ymd(d);
+      const entry = miniHeat[k] || {};
+      const seconds = typeof entry.study_time_seconds === 'number'
+        ? entry.study_time_seconds
+        : (entry.study_time || 0);
+      last5.push({ key: k, label: days[d.getDay()], minutes: Math.round(seconds / 60) });
+    }
     const clock = formatClock(new Date());
 
     wrap.innerHTML = `
@@ -159,8 +172,12 @@ const Navbar = {
   },
   _getProgressPct() {
     const s = AppState.stats;
-    if (!s || !s.total_topics) return 0;
-    return Math.round((s.completed_topics / s.total_topics) * 100);
+    if (!s) return 0;
+    // Backend nests topic totals under s.progress; fall back to top-level for
+    // older payloads.
+    const prog = s.progress || s;
+    if (!prog.total_topics) return 0;
+    return Math.round((prog.completed_topics / prog.total_topics) * 100);
   },
   updateTimer() {
     const wrap = $('#nav-session');
