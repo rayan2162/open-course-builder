@@ -1,0 +1,15 @@
+{
+  "name": "open-course-builder",
+  "version": "1.0.0",
+  "description": "A simple CRUD course builder that aggregates YouTube, articles, PDFs, audio, video, images, and text notes into one place.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^14.0.0"
+  }
+}
