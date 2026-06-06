@@ -659,7 +659,7 @@
     }
 
     els.lessonsList.innerHTML = course.lessons
-      .map((l) => {
+      .map((l, idx) => {
         const resourceHref = l.resource || '#';
         const isExternal = /^https?:\/\//i.test(l.resource || '');
         const targetAttr = isExternal ? 'target="_blank" rel="noopener noreferrer"' : '';
@@ -704,9 +704,17 @@
               ${snippetHtml}
             </div>
             <div class="lesson-actions">
-              <button class="btn btn-sm btn-outline-secondary edit-lesson ocb-action-btn" title="Edit"><i class="bi bi-pencil"></i></button>
-              <button class="btn btn-sm btn-outline-danger delete-lesson ocb-action-btn" title="Delete"><i class="bi bi-trash"></i></button>
-              <button class="btn btn-sm btn-outline-primary open-lesson" title="Open"><i class="bi bi-box-arrow-up-right"></i> Open</button>
+              <div class="lesson-actions-col lesson-actions-col-view">
+                <button class="btn btn-sm btn-outline-primary open-lesson" title="Open"><i class="bi bi-box-arrow-up-right"></i> Open</button>
+              </div>
+              <div class="lesson-actions-col lesson-actions-col-edit ocb-action-btn">
+                <button class="btn btn-sm btn-outline-secondary edit-lesson ocb-action-btn" title="Edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-outline-danger delete-lesson ocb-action-btn" title="Delete"><i class="bi bi-trash"></i></button>
+              </div>
+              <div class="lesson-actions-col lesson-actions-col-reorder ocb-action-btn">
+                <button class="btn btn-sm btn-outline-secondary move-lesson-up ocb-action-btn" data-dir="up" title="Move up"${idx === 0 ? ' disabled' : ''}><i class="bi bi-arrow-up"></i></button>
+                <button class="btn btn-sm btn-outline-secondary move-lesson-down ocb-action-btn" data-dir="down" title="Move down"${idx === course.lessons.length - 1 ? ' disabled' : ''}><i class="bi bi-arrow-down"></i></button>
+              </div>
             </div>
           </div>`;
       })
@@ -732,6 +740,16 @@
           openLessonResource(lesson);
         });
       }
+      // Reorder buttons (up / down). Disabled buttons short-circuit in the
+      // handler as well, since `disabled` attribute doesn't always suppress
+      // the click event in older browsers.
+      row.querySelectorAll('.move-lesson-up, .move-lesson-down').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (btn.disabled) return;
+          moveLesson(id, btn.dataset.dir);
+        });
+      });
       // Preview on clicking the resource link
       const link = row.querySelector('.lesson-meta a');
       if (link && lesson) {
@@ -1030,6 +1048,39 @@
       toast('Lesson deleted');
     } catch (err) {
       toast('Delete failed: ' + err.message);
+    }
+  }
+
+  // Move a lesson one position up or down within the active course. The
+  // server receives the new full order so the source of truth is `db.json`
+  // — the page is re-rendered from the server's response to stay in sync.
+  async function moveLesson(lessonId, direction) {
+    const course = state.courses.find((c) => c.id === state.activeCourseId);
+    if (!course) return;
+    const i = course.lessons.findIndex((l) => l.id === lessonId);
+    if (i < 0) return;
+    const j = direction === 'up' ? i - 1 : i + 1;
+    if (j < 0 || j >= course.lessons.length) return;
+    // Optimistically swap locally for snappier UX; the server response will
+    // replace this with the canonical order regardless.
+    const [moved] = course.lessons.splice(i, 1);
+    course.lessons.splice(j, 0, moved);
+    renderCourseDetail(course);
+    try {
+      const order = course.lessons.map((l) => l.id);
+      const refreshed = await api('PATCH', `/api/courses/${state.activeCourseId}/lessons/reorder`, { order });
+      const idx = state.courses.findIndex((c) => c.id === state.activeCourseId);
+      if (idx >= 0) state.courses[idx] = refreshed;
+      renderCourseDetail(refreshed);
+    } catch (err) {
+      toast('Reorder failed: ' + err.message);
+      // Re-fetch to roll back the optimistic swap.
+      try {
+        const refreshed = await api('GET', `/api/courses/${state.activeCourseId}`);
+        const idx = state.courses.findIndex((c) => c.id === state.activeCourseId);
+        if (idx >= 0) state.courses[idx] = refreshed;
+        renderCourseDetail(refreshed);
+      } catch {}
     }
   }
 

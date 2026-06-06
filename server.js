@@ -234,6 +234,38 @@ app.patch('/api/courses/:id/lessons/:lessonId/toggle', (req, res) => {
   res.json(lesson);
 });
 
+// Reorder the lessons within a course. The client sends the full new order
+// as `{ order: [lessonId, lessonId, ...] }`. Any lessons not mentioned are
+// appended at the end in their previous relative order, so a missing id is
+// never silently dropped. Unknown ids are ignored.
+app.patch('/api/courses/:id/lessons/reorder', (req, res) => {
+  const db = readDB();
+  const course = db.courses.find((c) => c.id === req.params.id);
+  if (!course) return res.status(404).json({ error: 'Course not found' });
+  const order = Array.isArray(req.body && req.body.order) ? req.body.order : null;
+  if (!order) return res.status(400).json({ error: 'order must be an array of lesson ids' });
+
+  const byId = new Map(course.lessons.map((l) => [l.id, l]));
+  const seen = new Set();
+  const next = [];
+  for (const id of order) {
+    if (typeof id !== 'string') continue;
+    const lesson = byId.get(id);
+    if (lesson && !seen.has(id)) {
+      next.push(lesson);
+      seen.add(id);
+    }
+  }
+  // Append anything the client didn't mention, preserving existing order.
+  for (const lesson of course.lessons) {
+    if (!seen.has(lesson.id)) next.push(lesson);
+  }
+  course.lessons = next;
+  course.updatedAt = new Date().toISOString();
+  writeDB(db);
+  res.json(course);
+});
+
 app.delete('/api/courses/:id/lessons/:lessonId', (req, res) => {
   const db = readDB();
   const course = db.courses.find((c) => c.id === req.params.id);
