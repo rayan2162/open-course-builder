@@ -36,6 +36,72 @@
             <i class="bi bi-eye"></i>
             <span class="d-none d-md-inline ms-1">View mode</span>
           </button>
+          <button
+            class="btn btn-outline-primary btn-sm"
+            id="syncProgressBtn"
+            title="Commit and push db.json to the remote"
+          >
+            <i class="bi bi-cloud-arrow-up"></i>
+            <span class="d-none d-md-inline ms-1">Sync progress</span>
+          </button>
+          <div class="position-relative">
+            <button
+              class="btn btn-outline-warning btn-sm"
+              id="streaksBtn"
+              aria-expanded="false"
+              title="View streak heatmap"
+            >
+              <i class="bi bi-fire"></i>
+              <span class="d-none d-md-inline ms-1">Streaks</span>
+            </button>
+            <div id="streaksPanel" class="streaks-panel shadow d-none" role="dialog" aria-label="Streak heatmap">
+              <div class="streaks-head">
+                <div>
+                  <div class="streaks-title">Activity</div>
+                  <div class="streaks-subtitle text-muted small">Lessons completed over time</div>
+                </div>
+                <button type="button" class="btn-close" id="streaksCloseBtn" aria-label="Close"></button>
+              </div>
+              <div class="streaks-stats">
+                <div class="streaks-stat">
+                  <div class="streaks-stat-value" id="streaksCurrent">0</div>
+                  <div class="streaks-stat-label">Current streak</div>
+                </div>
+                <div class="streaks-stat">
+                  <div class="streaks-stat-value" id="streaksLongest">0</div>
+                  <div class="streaks-stat-label">Longest streak</div>
+                </div>
+                <div class="streaks-stat">
+                  <div class="streaks-stat-value" id="streaksTotal">0</div>
+                  <div class="streaks-stat-label">Total completions</div>
+                </div>
+                <div class="streaks-stat">
+                  <div class="streaks-stat-value" id="streaksActiveDays">0</div>
+                  <div class="streaks-stat-label">Active days</div>
+                </div>
+              </div>
+              <div class="streaks-heatmap-wrap">
+                <div class="streaks-months" id="streaksMonths"></div>
+                <div class="streaks-grid-row">
+                  <div class="streaks-dow">
+                    <span></span><span>Mon</span><span></span>
+                    <span>Wed</span><span></span>
+                    <span>Fri</span><span></span>
+                  </div>
+                  <div class="streaks-grid" id="streaksGrid"></div>
+                </div>
+                <div class="streaks-legend">
+                  <span class="text-muted small">Less</span>
+                  <span class="streaks-cell legend-0"></span>
+                  <span class="streaks-cell legend-1"></span>
+                  <span class="streaks-cell legend-2"></span>
+                  <span class="streaks-cell legend-3"></span>
+                  <span class="streaks-cell legend-4"></span>
+                  <span class="text-muted small">More</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </nav>

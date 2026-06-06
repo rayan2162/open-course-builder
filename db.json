@@ -14,6 +14,7 @@
           "resource": "",
           "notes": "# Open Course Builder\n\nA simple CRUD app that collects every kind of learning resource for a course in one place: YouTube links, articles, website URLs, PDFs, audio, video, images, and plain text notes. Backed by a single `db.json` file and a tiny Node/Express server.\n\n## Stack\n- **Frontend:** HTML, Bootstrap 5, vanilla JS (no build step).\n- **Backend:** Node + Express, `multer` for file uploads, `uuid` for IDs.\n- **Storage:** `db.json` (auto-created) + `uploads/` directory for uploaded files.\n\n## Run\n```bash\nnpm install\nnpm start\n```\nThen open http://localhost:3000\n\n## Project layout\n```\nopen-course-builder/\n├── server.js        # Express API + static server\n├── package.json\n├── db.json          # JSON database (auto-created)\n├── public/          # Static frontend\n│   ├── index.html\n│   ├── app.js\n│   └── styles.css\n└── uploads/         # Uploaded files land here\n```\n\n## API\n- `GET    /api/courses` — list courses\n- `POST   /api/courses` — create a course (with optional `lessons[]`)\n- `GET    /api/courses/:id` — get one course\n- `PUT    /api/courses/:id` — update title/description\n- `DELETE /api/courses/:id` — delete a course\n- `POST   /api/courses/:id/lessons` — add a lesson\n- `PUT    /api/courses/:id/lessons/:lessonId` — update a lesson\n- `PATCH  /api/courses/:id/lessons/:lessonId/toggle` — toggle `isCompleted`\n- `DELETE /api/courses/:id/lessons/:lessonId` — delete a lesson\n- `POST   /api/upload` (multipart `file`) — returns `{ name, path, size, mimetype }`\n\n## Lesson shape\n```json\n{\n  \"id\": \"uuid\",\n  \"title\": \"Flexbox basics\",\n  \"type\": \"youtube | article | website | pdf | audio | video | image | text\",\n  \"resource\": \"https://... or /uploads/file.pdf or ''\",\n  \"notes\": \"free-form notes\",\n  \"isCompleted\": false,\n  \"createdAt\": \"2026-01-01T00:00:00.000Z\"\n}\n```\n\nResource type is auto-detected from the URL/extension. You can override it explicitly.\n",
           "isCompleted": true,
+          "completeDate": "2026-06-06T09:35:50.000Z",
           "createdAt": "2026-06-06T09:20:10.928Z"
         },
         {
@@ -23,6 +24,7 @@
           "resource": "/uploads/1780737646214-b329b514-2504.19874v1.pdf",
           "notes": "hello",
           "isCompleted": true,
+          "completeDate": "2026-06-06T09:35:50.000Z",
           "createdAt": "2026-06-06T09:20:50.845Z"
         },
         {
@@ -32,6 +34,7 @@
           "resource": "https://www.w3schools.com/html/",
           "notes": "web site link",
           "isCompleted": false,
+          "completeDate": null,
           "createdAt": "2026-06-06T09:27:05.166Z"
         }
       ]

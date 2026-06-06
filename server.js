@@ -165,6 +165,7 @@ function normalizeLesson(input) {
     resource: typeof resource === 'string' ? resource : '',
     notes,
     isCompleted: Boolean(input.isCompleted),
+    completeDate: input.isCompleted ? new Date().toISOString() : null,
     createdAt: new Date().toISOString(),
   };
 }
@@ -190,7 +191,14 @@ app.put('/api/courses/:id/lessons/:lessonId', (req, res) => {
   const { title, type, resource, notes, isCompleted } = req.body || {};
   if (typeof title === 'string' && title.trim()) lesson.title = title.trim();
   if (typeof notes === 'string') lesson.notes = notes;
-  if (typeof isCompleted === 'boolean') lesson.isCompleted = isCompleted;
+  if (typeof isCompleted === 'boolean') {
+    const was = lesson.isCompleted;
+    lesson.isCompleted = isCompleted;
+    // Only set a completeDate the first time the lesson flips true. Clearing
+    // isCompleted wipes completeDate so the heatmap reflects the new state.
+    if (isCompleted && !was) lesson.completeDate = new Date().toISOString();
+    else if (!isCompleted) lesson.completeDate = null;
+  }
 
   if (resource !== undefined) {
     if (resource && typeof resource === 'object') {
@@ -218,6 +226,9 @@ app.patch('/api/courses/:id/lessons/:lessonId/toggle', (req, res) => {
   const lesson = findLesson(course, req.params.lessonId);
   if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
   lesson.isCompleted = !lesson.isCompleted;
+  // Stamp completeDate when flipping on, clear it when flipping off.
+  if (lesson.isCompleted) lesson.completeDate = new Date().toISOString();
+  else lesson.completeDate = null;
   course.updatedAt = new Date().toISOString();
   writeDB(db);
   res.json(lesson);
@@ -290,6 +301,67 @@ app.post('/api/upload-path', (req, res) => {
     mimetype: '', // browser infers from extension
     originalPath: abs,
   });
+});
+
+// --- Sync db.json to the remote (git add/commit/push) ---------------------
+// Runs `git add db.json && git commit -m "synced" && git push origin main` from
+// the server's cwd. Returns a small JSON report so the UI can toast the result.
+// If there's nothing to commit, the commit step is skipped (no error). If the
+// push fails (e.g. no network), the commit is kept locally and the error is
+// reported back to the caller.
+app.post('/api/sync', (_req, res) => {
+  const { execFile } = require('child_process');
+
+  function run(cmd, args) {
+    return new Promise((resolve) => {
+      execFile(cmd, args, { cwd: ROOT, windowsHide: true, maxBuffer: 4 * 1024 * 1024 }, (err, stdout, stderr) => {
+        resolve({ err, stdout: String(stdout || ''), stderr: String(stderr || '') });
+      });
+    });
+  }
+
+  (async () => {
+    try {
+      // Make sure git sees a change worth committing.
+      const status = await run('git', ['status', '--porcelain', '--', 'db.json']);
+      if (status.err) {
+        return res.status(500).json({ ok: false, error: 'git status failed: ' + status.stderr.trim() });
+      }
+      const dirty = status.stdout.trim().length > 0;
+
+      if (dirty) {
+        const add = await run('git', ['add', 'db.json']);
+        if (add.err) return res.status(500).json({ ok: false, error: 'git add failed: ' + add.stderr.trim() });
+
+        const commit = await run('git', ['commit', '-m', 'synced']);
+        // Non-zero exit from commit is usually "nothing to commit" (race) — treat as skip.
+        if (commit.err && !/nothing to commit/i.test(commit.stderr + commit.stdout)) {
+          return res.status(500).json({ ok: false, error: 'git commit failed: ' + (commit.stderr || commit.stdout).trim() });
+        }
+      }
+
+      const push = await run('git', ['push', 'origin', 'main']);
+      if (push.err) {
+        return res.json({
+          ok: false,
+          committed: dirty,
+          pushed: false,
+          pushSkipped: false,
+          error: 'git push failed: ' + (push.stderr || push.stdout).trim(),
+        });
+      }
+
+      return res.json({
+        ok: true,
+        committed: dirty,
+        commitSkipped: !dirty,
+        pushed: true,
+        pushSkipped: false,
+      });
+    } catch (err) {
+      res.status(500).json({ ok: false, error: err.message });
+    }
+  })();
 });
 
 // --- Heal existing lessons that still reference raw local paths ----------

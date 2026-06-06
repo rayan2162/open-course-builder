@@ -25,6 +25,16 @@
     emptyCreateBtn: $('#emptyCreateBtn'),
     newCourseBtn: $('#newCourseBtn'),
     toggleActionsBtn: $('#toggleActionsBtn'),
+    syncProgressBtn: $('#syncProgressBtn'),
+    streaksBtn: $('#streaksBtn'),
+    streaksPanel: $('#streaksPanel'),
+    streaksCloseBtn: $('#streaksCloseBtn'),
+    streaksCurrent: $('#streaksCurrent'),
+    streaksLongest: $('#streaksLongest'),
+    streaksTotal: $('#streaksTotal'),
+    streaksActiveDays: $('#streaksActiveDays'),
+    streaksMonths: $('#streaksMonths'),
+    streaksGrid: $('#streaksGrid'),
 
     detailView: $('#courseDetailView'),
     detailTitle: $('#detailTitle'),
@@ -244,11 +254,236 @@
     applyViewMode(saved === '1');
   }
 
+  // ---------- Streaks (heatmap from lesson completeDate) ------------------
+  // Renders a GitHub-style 12-month contribution heatmap inside the navbar
+  // dropdown. The grid is built column-by-column (one column = one week)
+  // starting from the Sunday at or before 12 months ago, ending at today's
+  // column. Each cell is a day; intensity is bucketed from the count of
+  // lessons completed that day. Streaks (current + longest) are computed
+  // from the same set of active days.
+  const STREAKS_WEEKS = 53; // ~12 months incl. the current partial week
+  const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  // Return YYYY-MM-DD in the user's local timezone for a Date instance.
+  function dayKey(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  // Build a Map<dayKey, count> of lesson completions from state.courses.
+  // We bucket on the local-time date so the heatmap matches what the user
+  // actually sees on their wall clock.
+  function collectCompletionDays() {
+    const counts = new Map();
+    let total = 0;
+    for (const course of state.courses || []) {
+      for (const lesson of course.lessons || []) {
+        if (!lesson.isCompleted || !lesson.completeDate) continue;
+        const d = new Date(lesson.completeDate);
+        if (isNaN(d.getTime())) continue;
+        const k = dayKey(d);
+        counts.set(k, (counts.get(k) || 0) + 1);
+        total += 1;
+      }
+    }
+    return { counts, total };
+  }
+
+  // Compute current and longest streaks. "Active" = at least one completion
+  // that day. Current streak counts back from today (or yesterday if today
+  // is empty) so a single day off doesn't reset the streak.
+  function computeStreaks(counts) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Longest streak: walk sorted keys.
+    const sortedKeys = Array.from(counts.keys()).sort();
+    let longest = 0;
+    let run = 0;
+    let prev = null;
+    for (const k of sortedKeys) {
+      const d = new Date(k + 'T00:00:00');
+      if (prev) {
+        const diff = Math.round((d - prev) / 86400000);
+        run = (diff === 1) ? run + 1 : 1;
+      } else {
+        run = 1;
+      }
+      if (run > longest) longest = run;
+      prev = d;
+    }
+
+    // Current streak: start at today; if today is empty, allow a one-day
+    // grace and start from yesterday. Walk backwards while consecutive days
+    // have completions.
+    let current = 0;
+    const cursor = new Date(today);
+    if (!counts.has(dayKey(cursor))) cursor.setDate(cursor.getDate() - 1);
+    while (counts.has(dayKey(cursor))) {
+      current += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+
+    return { current, longest };
+  }
+
+  // Map a count to a 0..4 intensity bucket. 0 stays level-0 (empty cell).
+  function intensityFor(count, max) {
+    if (!count) return 0;
+    if (max <= 1) return 4;
+    const ratio = count / max;
+    if (ratio <= 0.25) return 1;
+    if (ratio <= 0.5) return 2;
+    if (ratio <= 0.75) return 3;
+    return 4;
+  }
+
+  function renderStreaks() {
+    if (!els.streaksGrid) return;
+    const { counts, total } = collectCompletionDays();
+    const { current, longest } = computeStreaks(counts);
+    const max = counts.size ? Math.max(...counts.values()) : 0;
+    const activeDays = counts.size;
+
+    if (els.streaksCurrent) els.streaksCurrent.textContent = current;
+    if (els.streaksLongest) els.streaksLongest.textContent = longest;
+    if (els.streaksTotal) els.streaksTotal.textContent = total;
+    if (els.streaksActiveDays) els.streaksActiveDays.textContent = activeDays;
+
+    // Anchor: Sunday at or before (today - STREAKS_WEEKS weeks).
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endCol = new Date(today);
+    const start = new Date(endCol);
+    start.setDate(start.getDate() - (STREAKS_WEEKS - 1) * 7);
+    // Walk back to Sunday.
+    start.setDate(start.getDate() - start.getDay());
+
+    // Build cells column-by-column. Each column has 7 cells (Sun..Sat).
+    // `cells[col][row]` = { date, count, intensity }.
+    const cells = [];
+    const monthLabels = []; // [{ col, label }]
+    let lastMonth = -1;
+    for (let c = 0; c < STREAKS_WEEKS; c++) {
+      const col = [];
+      for (let r = 0; r < 7; r++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + c * 7 + r);
+        if (d > endCol) {
+          col.push(null);
+          continue;
+        }
+        const k = dayKey(d);
+        const count = counts.get(k) || 0;
+        col.push({ date: d, key: k, count, intensity: intensityFor(count, max) });
+        if (r === 0 && d.getMonth() !== lastMonth) {
+          monthLabels.push({ col: c, label: MONTH_LABELS[d.getMonth()] });
+          lastMonth = d.getMonth();
+        }
+      }
+      cells.push(col);
+    }
+
+    // Render month labels using a 53-column grid so they line up with weeks.
+    if (els.streaksMonths) {
+      const cellsPerCol = els.streaksMonths.children.length
+        ? Array.from(els.streaksMonths.children).map(() => null)
+        : [];
+      // Rebuild from scratch each render — fast (53 nodes).
+      let html = '';
+      for (let c = 0; c < STREAKS_WEEKS; c++) html += '<span></span>';
+      els.streaksMonths.innerHTML = html;
+      const spans = els.streaksMonths.children;
+      for (const m of monthLabels) {
+        if (spans[m.col]) spans[m.col].textContent = m.label;
+      }
+    }
+
+    // Render the grid.
+    let html = '';
+    for (let c = 0; c < cells.length; c++) {
+      html += '<div class="streaks-col">';
+      for (let r = 0; r < 7; r++) {
+        const cell = cells[c][r];
+        if (!cell) {
+          html += '<span class="streaks-cell empty"></span>';
+          continue;
+        }
+        const title = `${cell.count} lesson${cell.count === 1 ? '' : 's'} on ${cell.key}`;
+        html += `<span class="streaks-cell lvl-${cell.intensity}" title="${escapeHtml(title)}" data-key="${cell.key}"></span>`;
+      }
+      html += '</div>';
+    }
+    els.streaksGrid.innerHTML = html;
+  }
+
+  function openStreaks() {
+    if (!els.streaksPanel) return;
+    renderStreaks();
+    els.streaksPanel.classList.remove('d-none');
+    els.streaksBtn.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeStreaks() {
+    if (!els.streaksPanel) return;
+    els.streaksPanel.classList.add('d-none');
+    els.streaksBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  function toggleStreaks() {
+    if (!els.streaksPanel) return;
+    if (els.streaksPanel.classList.contains('d-none')) openStreaks();
+    else closeStreaks();
+  }
+
+  // ---------- Sync progress (git add/commit/push db.json) ------------------
+  // Calls the server endpoint which runs `git add db.json && git commit -m
+  // "synced" && git push origin main`. Shows a toast with the result. While
+  // the request is in flight the button is disabled and shows a spinner.
+  async function syncProgress() {
+    if (!els.syncProgressBtn) return;
+    const btn = els.syncProgressBtn;
+    const icon = btn.querySelector('i');
+    const label = btn.querySelector('span');
+    const originalIcon = icon ? icon.className : null;
+    const originalLabel = label ? label.textContent : null;
+
+    btn.disabled = true;
+    if (icon) icon.className = 'bi bi-arrow-repeat ocb-spin';
+    if (label) label.textContent = 'Syncing…';
+    toast('Syncing progress to remote…');
+
+    try {
+      const res = await api('POST', '/api/sync');
+      if (res && res.ok) {
+        const parts = [];
+        if (res.committed) parts.push('committed');
+        else if (res.commitSkipped) parts.push('nothing to commit');
+        if (res.pushed) parts.push('pushed');
+        else if (res.pushSkipped) parts.push('push skipped');
+        const detail = parts.length ? ` (${parts.join(' + ')})` : '';
+        toast(`Synced${detail}`);
+      } else {
+        toast('Sync failed: ' + (res && res.error ? res.error : 'unknown error'));
+      }
+    } catch (err) {
+      toast('Sync failed: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      if (icon && originalIcon) icon.className = originalIcon;
+      if (label && originalLabel !== null) label.textContent = originalLabel;
+    }
+  }
+
   // ---------- Courses list -------------------------------------------------
   async function loadCourses() {
     try {
       state.courses = await api('GET', '/api/courses');
       renderCourses();
+      if (els.streaksPanel && !els.streaksPanel.classList.contains('d-none')) renderStreaks();
     } catch (err) {
       toast('Failed to load courses: ' + err.message);
     }
@@ -721,6 +956,7 @@
       // Sync local cache
       const idx = state.courses.findIndex((c) => c.id === state.activeCourseId);
       if (idx >= 0) state.courses[idx] = refreshed;
+      renderStreaks();
     } catch (err) {
       toast('Save failed: ' + err.message);
     }
@@ -734,6 +970,7 @@
       const idx = state.courses.findIndex((c) => c.id === state.activeCourseId);
       if (idx >= 0) state.courses[idx] = refreshed;
       renderCourseDetail(refreshed);
+      renderStreaks();
     } catch (err) {
       toast('Toggle failed: ' + err.message);
     }
@@ -752,6 +989,7 @@
       const idx = state.courses.findIndex((c) => c.id === state.activeCourseId);
       if (idx >= 0) state.courses[idx] = refreshed;
       renderCourseDetail(refreshed);
+      renderStreaks();
       toast('Lesson deleted');
     } catch (err) {
       toast('Delete failed: ' + err.message);
@@ -849,6 +1087,22 @@
   function wireEvents() {
     els.newCourseBtn.addEventListener('click', openCourseCreateModal);
     els.toggleActionsBtn.addEventListener('click', toggleViewMode);
+    if (els.syncProgressBtn) els.syncProgressBtn.addEventListener('click', syncProgress);
+    if (els.streaksBtn) els.streaksBtn.addEventListener('click', toggleStreaks);
+    if (els.streaksCloseBtn) els.streaksCloseBtn.addEventListener('click', closeStreaks);
+    // Click anywhere outside the panel closes it.
+    document.addEventListener('click', (e) => {
+      if (!els.streaksPanel || els.streaksPanel.classList.contains('d-none')) return;
+      if (els.streaksPanel.contains(e.target)) return;
+      if (els.streaksBtn && els.streaksBtn.contains(e.target)) return;
+      closeStreaks();
+    });
+    // Escape closes the panel.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && els.streaksPanel && !els.streaksPanel.classList.contains('d-none')) {
+        closeStreaks();
+      }
+    });
     els.emptyCreateBtn.addEventListener('click', openCourseCreateModal);
     els.backToCourses.addEventListener('click', backToList);
     els.editCourseBtn.addEventListener('click', openCourseEditModal);
