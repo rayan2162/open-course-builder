@@ -5,7 +5,7 @@
       "title": "web dev",
       "description": "jello",
       "createdAt": "2026-06-06T09:19:24.420Z",
-      "updatedAt": "2026-06-06T11:28:17.782Z",
+      "updatedAt": "2026-06-06T18:13:53.266Z",
       "lessons": [
         {
           "id": "36d01516-9aa2-4478-baca-54b8cbd4d3fc",
@@ -36,6 +36,36 @@
           "isCompleted": true,
           "completeDate": "2026-06-06T11:28:17.782Z",
           "createdAt": "2026-06-06T09:27:05.166Z"
+        },
+        {
+          "id": "033301a5-5eba-474a-81aa-32dfaa06973a",
+          "title": "yt",
+          "type": "youtube",
+          "resource": "https://www.youtube.com/watch?v=1iDrQta26zo&list=RD1iDrQta26zo&start_radio=1",
+          "notes": "link",
+          "isCompleted": false,
+          "completeDate": null,
+          "createdAt": "2026-06-06T17:02:30.229Z"
+        },
+        {
+          "id": "beed2ae5-f5e2-4004-97df-a64293f43670",
+          "title": "site test",
+          "type": "website",
+          "resource": "https://en.wikipedia.org/wiki/Computer",
+          "notes": "test",
+          "isCompleted": false,
+          "completeDate": null,
+          "createdAt": "2026-06-06T17:11:07.958Z"
+        },
+        {
+          "id": "2213a5d2-c5ae-4c08-876a-27a0a7081fc9",
+          "title": "chatbot",
+          "type": "website",
+          "resource": "https://chatgpt.com/",
+          "notes": "test chatgpt",
+          "isCompleted": false,
+          "completeDate": null,
+          "createdAt": "2026-06-06T17:11:55.631Z"
         }
       ]
     }
