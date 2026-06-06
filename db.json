@@ -68,6 +68,25 @@
           "createdAt": "2026-06-06T17:11:55.631Z"
         }
       ]
+    },
+    {
+      "id": "1ccb82ce-a2a7-4ac4-8d7a-d3833b0010ad",
+      "title": "mobile dev",
+      "description": "android and ios development course plan",
+      "createdAt": "2026-06-06T18:17:07.403Z",
+      "updatedAt": "2026-06-06T18:18:05.119Z",
+      "lessons": [
+        {
+          "id": "fc69497e-6734-4676-95e6-2ac16b9d43a3",
+          "title": "intro to mobile dev",
+          "type": "text",
+          "resource": "",
+          "notes": "hello mobile devs",
+          "isCompleted": true,
+          "completeDate": "2026-06-06T18:18:05.119Z",
+          "createdAt": "2026-06-06T18:17:37.198Z"
+        }
+      ]
     }
   ]
 }
