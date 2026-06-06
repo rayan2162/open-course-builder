@@ -5,7 +5,7 @@
       "title": "web dev",
       "description": "jello",
       "createdAt": "2026-06-06T09:19:24.420Z",
-      "updatedAt": "2026-06-06T18:13:53.266Z",
+      "updatedAt": "2026-06-06T18:15:03.334Z",
       "lessons": [
         {
           "id": "36d01516-9aa2-4478-baca-54b8cbd4d3fc",
@@ -43,8 +43,8 @@
           "type": "youtube",
           "resource": "https://www.youtube.com/watch?v=1iDrQta26zo&list=RD1iDrQta26zo&start_radio=1",
           "notes": "link",
-          "isCompleted": false,
-          "completeDate": null,
+          "isCompleted": true,
+          "completeDate": "2026-06-06T18:14:50.630Z",
           "createdAt": "2026-06-06T17:02:30.229Z"
         },
         {
@@ -53,8 +53,8 @@
           "type": "website",
           "resource": "https://en.wikipedia.org/wiki/Computer",
           "notes": "test",
-          "isCompleted": false,
-          "completeDate": null,
+          "isCompleted": true,
+          "completeDate": "2026-06-06T18:14:58.331Z",
           "createdAt": "2026-06-06T17:11:07.958Z"
         },
         {
