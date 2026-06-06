@@ -5,7 +5,7 @@
       "title": "frontend",
       "description": "1 month frontend learning challange",
       "createdAt": "2026-06-06T18:51:00.082Z",
-      "updatedAt": "2026-06-06T19:04:37.316Z",
+      "updatedAt": "2026-06-06T19:06:08.147Z",
       "lessons": [
         {
           "id": "cc217eba-f2f0-443f-a20d-9ba742581e14",
@@ -23,8 +23,8 @@
           "type": "website",
           "resource": "https://www.w3schools.com/css/",
           "notes": "",
-          "isCompleted": false,
-          "completeDate": null,
+          "isCompleted": true,
+          "completeDate": "2026-06-06T19:06:08.147Z",
           "createdAt": "2026-06-06T18:55:09.283Z"
         },
         {
