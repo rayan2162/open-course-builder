@@ -3,7 +3,7 @@
   "title": "devops",
   "description": "",
   "createdAt": "2026-06-07T08:29:16.177Z",
-  "updatedAt": "2026-06-07T08:29:16.177Z",
+  "updatedAt": "2026-06-07T08:38:47.841Z",
   "lessons": [
     {
       "id": "5437fc3c-0750-4623-9363-948cf5144c8f",
@@ -11,8 +11,8 @@
       "type": "youtube",
       "resource": "https://www.youtube.com/watch?v=1iDrQta26zo&list=RD1iDrQta26zo&start_radio=1",
       "notes": "",
-      "isCompleted": false,
-      "completeDate": null,
+      "isCompleted": true,
+      "completeDate": "2026-06-07T08:38:47.841Z",
       "createdAt": "2026-06-07T08:29:16.177Z"
     }
   ]
