@@ -1,0 +1,19 @@
+{
+  "id": "75488a6d-d503-4e55-8a00-8d743b72f92f",
+  "title": "backend",
+  "description": "",
+  "createdAt": "2026-06-07T07:48:09.746Z",
+  "updatedAt": "2026-06-07T07:48:31.116Z",
+  "lessons": [
+    {
+      "id": "b220fbf1-2447-4578-bb34-eb3f9e8f5e89",
+      "title": "next",
+      "type": "youtube",
+      "resource": "https://www.youtube.com/watch?v=1iDrQta26zo&list=RD1iDrQta26zo&start_radio=1",
+      "notes": "",
+      "isCompleted": false,
+      "completeDate": null,
+      "createdAt": "2026-06-07T07:48:31.116Z"
+    }
+  ]
+}

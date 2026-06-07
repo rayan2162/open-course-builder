@@ -1,0 +1,99 @@
+{
+  "id": "5446e45a-8177-4c3c-a8c3-70105ce8bad5",
+  "title": "frontend",
+  "description": "1 month frontend learning challange",
+  "createdAt": "2026-06-06T18:51:00.082Z",
+  "updatedAt": "2026-06-07T08:10:18.251Z",
+  "lessons": [
+    {
+      "id": "cc217eba-f2f0-443f-a20d-9ba742581e14",
+      "title": "html for beginner",
+      "type": "youtube",
+      "resource": "https://www.youtube.com/watch?v=ok-plXXHlWw",
+      "notes": "basic notes for html ",
+      "isCompleted": true,
+      "completeDate": "2026-06-06T19:28:55.463Z",
+      "createdAt": "2026-06-06T18:53:54.883Z"
+    },
+    {
+      "id": "3e229e19-d91d-4c08-a9d1-ba3f8ecba239",
+      "title": "css",
+      "type": "website",
+      "resource": "https://www.w3schools.com/css/",
+      "notes": "",
+      "isCompleted": false,
+      "completeDate": null,
+      "createdAt": "2026-06-06T18:55:09.283Z"
+    },
+    {
+      "id": "625aa395-c210-42f8-9c39-1fae3d92d406",
+      "title": "bootstrap",
+      "type": "image",
+      "resource": "/uploads/1780772417497-91cc3b0f-pexels-harry-shum-17627821-6504525.jpg",
+      "notes": "",
+      "isCompleted": true,
+      "completeDate": "2026-06-06T19:28:54.163Z",
+      "createdAt": "2026-06-06T19:00:18.780Z"
+    },
+    {
+      "id": "d3d2f7bd-3bc6-471a-bc06-b666d1346850",
+      "title": "node",
+      "type": "pdf",
+      "resource": "/uploads/1780772376194-13ec4dc2-2504.19874v1.pdf",
+      "notes": "offline pdf",
+      "isCompleted": true,
+      "completeDate": "2026-06-06T19:28:52.879Z",
+      "createdAt": "2026-06-06T18:59:40.900Z"
+    },
+    {
+      "id": "6b0587a0-747d-4999-bd9a-edf36bb5e93e",
+      "title": "js",
+      "type": "video",
+      "resource": "/uploads/1780772131316-ed6ab388-PinkPantheress_Stateside___Zara_Larsson_Lyrics__Color_Coded_Lyrics_.mp4",
+      "notes": "offline video file",
+      "isCompleted": true,
+      "completeDate": "2026-06-06T19:28:57.205Z",
+      "createdAt": "2026-06-06T18:55:50.687Z"
+    },
+    {
+      "id": "5cc50260-e54c-4de6-bedb-2ff328b1ea5e",
+      "title": "task 2",
+      "type": "markdown",
+      "resource": "",
+      "notes": "# Open Course Builder\n\nA simple CRUD app that collects every kind of learning resource for a course in one place: YouTube links, articles, website URLs, PDFs, audio, video, images, and plain text notes. Backed by a single `db.json` file and a tiny Node/Express server.\n\n## Stack\n- **Frontend:** HTML, Bootstrap 5, vanilla JS (no build step).\n- **Backend:** Node + Express, `multer` for file uploads, `uuid` for IDs.\n- **Storage:** `db.json` (auto-created) + `uploads/` directory for uploaded files.\n\n## Run\n```bash\nnpm install\nnpm start\n```\nThen open http://localhost:3000\n\n## Project layout\n```\nopen-course-builder/\n├── server.js        # Express API + static server\n├── package.json\n├── db.json          # JSON database (auto-created)\n├── public/          # Static frontend\n│   ├── index.html\n│   ├── app.js\n│   └── styles.css\n└── uploads/         # Uploaded files land here\n```\n\n## API\n- `GET    /api/courses` — list courses\n- `POST   /api/courses` — create a course (with optional `lessons[]`)\n- `GET    /api/courses/:id` — get one course\n- `PUT    /api/courses/:id` — update title/description\n- `DELETE /api/courses/:id` — delete a course\n- `POST   /api/courses/:id/lessons` — add a lesson\n- `PUT    /api/courses/:id/lessons/:lessonId` — update a lesson\n- `PATCH  /api/courses/:id/lessons/:lessonId/toggle` — toggle `isCompleted`\n- `DELETE /api/courses/:id/lessons/:lessonId` — delete a lesson\n- `POST   /api/upload` (multipart `file`) — returns `{ name, path, size, mimetype }`\n\n## Lesson shape\n```json\n{\n  \"id\": \"uuid\",\n  \"title\": \"Flexbox basics\",\n  \"type\": \"youtube | article | website | pdf | audio | video | image | text\",\n  \"resource\": \"https://... or /uploads/file.pdf or ''\",\n  \"notes\": \"free-form notes\",\n  \"isCompleted\": false,\n  \"createdAt\": \"2026-01-01T00:00:00.000Z\"\n}\n```\n\nResource type is auto-detected from the URL/extension. You can override it explicitly.",
+      "isCompleted": true,
+      "completeDate": "2026-06-06T19:28:58.473Z",
+      "createdAt": "2026-06-06T19:03:19.138Z"
+    },
+    {
+      "id": "6b18872e-8f44-46fd-ab98-f13af746a854",
+      "title": "task 1",
+      "type": "text",
+      "resource": "",
+      "notes": "Examples in Each Chapter\n\nThis CSS tutorial contains over 700 CSS examples.\n\nWith our online editor, you can edit the CSS, and click on a button to view the result.\nCSS Example\nbody {\n  background-color: lightblue;\n}\n\nh1 {\n  color: white;\n  text-align: center;\n}\n\np {\n  font-family: verdana;\n  font-size: 20px;\n}\n\nClick on the \"Try it Yourself\" button to see how it works.\nCSS Examples\n\nLearn from over 700 examples! With our editor, you can edit the CSS, and click on a button to view the result.\n\nUse the Menu\n\nWe recommend reading this tutorial, in the sequence listed in the menu.\n\nIf you have a large screen, the menu will always be present on the left.\n\nIf you have a small screen, open the menu by clicking the top menu sign ☰.\nCSS Templates\n\nWe have created some responsive W3.CSS templates for you to use.\n\nYou are free to modify, save, share, and use them in all your projects.\n\nFree CSS Templates!\n\nCSS Exercises",
+      "isCompleted": false,
+      "completeDate": null,
+      "createdAt": "2026-06-06T19:00:54.019Z"
+    },
+    {
+      "id": "43a6e847-a5bc-4cb3-b8a2-77a37e86853f",
+      "title": "testing shape",
+      "type": "text",
+      "resource": "",
+      "notes": "Open Course Builder\n\nA simple CRUD app that collects every kind of learning resource for a course in one place: YouTube links, articles, website URLs, PDFs, audio, video, images, and plain text notes. Backed by a single db.json file and a tiny Node/Express server.\nStack\n\n    Frontend: HTML, Bootstrap 5, vanilla JS (no build step).\n    Backend: Node + Express, multer for file uploads, uuid for IDs.\n    Storage: db.json (auto-created) + uploads/ directory for uploaded files.\n\nRun\n\nnpm install\nnpm start\n\nThen open http://localhost:3000\nProject layout\n\nopen-course-builder/\n├── server.js        # Express API + static server\n├── package.json\n├── db.json          # JSON database (auto-created)\n├── public/          # Static frontend\n│   ├── index.html\n│   ├── app.js\n│   └── styles.css\n└── uploads/         # Uploaded files land here\n\nAPI\n\n    GET /api/courses — list courses\n    POST /api/courses — create a course (with optional lessons[])\n    GET /api/courses/:id — get one course\n    PUT /api/courses/:id — update title/description\n    DELETE /api/courses/:id — delete a course\n    POST /api/courses/:id/lessons — add a lesson\n    PUT /api/courses/:id/lessons/:lessonId — update a lesson\n    PATCH /api/courses/:id/lessons/:lessonId/toggle — toggle isCompleted\n    DELETE /api/courses/:id/lessons/:lessonId — delete a lesson\n    POST /api/upload (multipart file) — returns { name, path, size, mimetype }\n\nLesson shape\n\n{\n  \"id\": \"uuid\",\n  \"title\": \"Flexbox basics\",\n  \"type\": \"youtube | article | website | pdf | audio | video | image | text\",\n  \"resource\": \"https://... or /uploads/file.pdf or ''\",\n  \"notes\": \"free-form notes\",\n  \"isCompleted\": false,\n  \"createdAt\": \"2026-01-01T00:00:00.000Z\"\n}\n\nResource type is auto-detected from the URL/extension. You can override it explicitly.",
+      "isCompleted": false,
+      "completeDate": null,
+      "createdAt": "2026-06-06T19:26:22.927Z"
+    },
+    {
+      "id": "8ec98056-5609-4bbc-9af2-5f504922a0f4",
+      "title": "testing view note",
+      "type": "text",
+      "resource": "",
+      "notes": "this is main content\n",
+      "isCompleted": true,
+      "completeDate": "2026-06-06T19:42:59.864Z",
+      "createdAt": "2026-06-06T19:42:33.951Z"
+    }
+  ]
+}

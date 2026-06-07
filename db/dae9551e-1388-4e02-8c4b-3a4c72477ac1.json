@@ -1,0 +1,19 @@
+{
+  "id": "dae9551e-1388-4e02-8c4b-3a4c72477ac1",
+  "title": "devops",
+  "description": "",
+  "createdAt": "2026-06-07T08:29:16.177Z",
+  "updatedAt": "2026-06-07T08:29:16.177Z",
+  "lessons": [
+    {
+      "id": "5437fc3c-0750-4623-9363-948cf5144c8f",
+      "title": "docker",
+      "type": "youtube",
+      "resource": "https://www.youtube.com/watch?v=1iDrQta26zo&list=RD1iDrQta26zo&start_radio=1",
+      "notes": "",
+      "isCompleted": false,
+      "completeDate": null,
+      "createdAt": "2026-06-07T08:29:16.177Z"
+    }
+  ]
+}
