@@ -19,3 +19,5 @@ build/
 # OS files
 .DS_Store
 Thumbs.db
+
+.puku/
