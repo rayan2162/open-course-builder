@@ -6,38 +6,93 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = __dirname;
-const DB_PATH = path.join(ROOT, 'db.json');
+const DB_DIR = path.join(ROOT, 'db');
 const UPLOAD_DIR = path.join(ROOT, 'uploads');
 const PORT = process.env.PORT || 3000;
 
 // --- Ensure folders / db exist ---------------------------------------------
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-if (!fs.existsSync(DB_PATH)) fs.writeFileSync(DB_PATH, JSON.stringify({ courses: [] }, null, 2));
+if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
 
-// --- Helpers ---------------------------------------------------------------
-function readDB() {
-  let parsed;
+// --- Storage layer ---------------------------------------------------------
+// Each course lives in its own file at db/<courseId>.json. The full course
+// object (id, title, description, createdAt, updatedAt, lessons) is stored
+// verbatim. This makes individual courses trivially copy-pasteable / shareable
+// and avoids rewriting the whole DB for every lesson change.
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function coursePath(id) {
+  // Defence-in-depth: refuse to build a path that escapes db/.
+  if (typeof id !== 'string' || !UUID_RE.test(id)) {
+    const err = new Error('Invalid course id');
+    err.status = 400;
+    throw err;
+  }
+  return path.join(DB_DIR, `${id}.json`);
+}
+
+function readCourse(id) {
+  const file = coursePath(id);
   try {
-    const raw = fs.readFileSync(DB_PATH, 'utf8');
-    parsed = JSON.parse(raw);
-    if (!parsed.courses) parsed.courses = [];
+    const raw = fs.readFileSync(file, 'utf8');
+    const course = JSON.parse(raw);
+    if (!course || typeof course !== 'object' || !course.id) {
+      const err = new Error('Corrupt course file');
+      err.status = 500;
+      throw err;
+    }
+    return course;
   } catch (err) {
-    console.error('Failed to read DB, resetting:', err.message);
-    return { courses: [] };
+    if (err.code === 'ENOENT') {
+      const e = new Error('Course not found');
+      e.status = 404;
+      throw e;
+    }
+    throw err;
   }
-  // One-time heal: copy any raw local-path resources into uploads/ and rewrite.
-  if (healLocalPaths(parsed)) {
-    try { writeDB(parsed); } catch {}
-  }
-  return parsed;
 }
 
-function writeDB(data) {
-  fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+function writeCourse(course) {
+  if (!course || !course.id) {
+    const err = new Error('Course must have an id');
+    err.status = 400;
+    throw err;
+  }
+  const file = coursePath(course.id);
+  const tmp = `${file}.tmp-${process.pid}-${Date.now()}`;
+  fs.writeFileSync(tmp, JSON.stringify(course, null, 2));
+  fs.renameSync(tmp, file);
+  return course;
 }
 
-function findCourse(id) {
-  return readDB().courses.find((c) => c.id === id);
+function deleteCourseFile(id) {
+  const file = coursePath(id);
+  try {
+    fs.unlinkSync(file);
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw err;
+  }
+}
+
+function listAllCourses() {
+  const entries = fs.readdirSync(DB_DIR, { withFileTypes: true });
+  const courses = [];
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith('.json')) continue;
+    // Skip stray temp files from interrupted writes
+    if (entry.name.includes('.tmp-')) continue;
+    const id = entry.name.replace(/\.json$/, '');
+    if (!UUID_RE.test(id)) continue;
+    try {
+      courses.push(readCourse(id));
+    } catch (err) {
+      console.error(`Skipping unreadable course file ${entry.name}:`, err.message);
+    }
+  }
+  // Newest-updated first, so the UI's default ordering is intuitive.
+  courses.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+  return courses;
 }
 
 function findLesson(course, lessonId) {
@@ -91,13 +146,15 @@ app.use('/uploads', express.static(UPLOAD_DIR));
 
 // --- Courses ---------------------------------------------------------------
 app.get('/api/courses', (_req, res) => {
-  res.json(readDB().courses);
+  res.json(listAllCourses());
 });
 
 app.get('/api/courses/:id', (req, res) => {
-  const course = findCourse(req.params.id);
-  if (!course) return res.status(404).json({ error: 'Course not found' });
-  res.json(course);
+  try {
+    res.json(readCourse(req.params.id));
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
 });
 
 app.post('/api/courses', (req, res) => {
@@ -114,33 +171,33 @@ app.post('/api/courses', (req, res) => {
     lessons: (Array.isArray(lessons) ? lessons : []).map((l) => normalizeLesson(l)),
   };
 
-  const db = readDB();
-  db.courses.push(course);
-  writeDB(db);
+  writeCourse(course);
   res.status(201).json(course);
 });
 
 app.put('/api/courses/:id', (req, res) => {
-  const db = readDB();
-  const idx = db.courses.findIndex((c) => c.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Course not found' });
-  const current = db.courses[idx];
+  let course;
+  try { course = readCourse(req.params.id); }
+  catch (err) { return res.status(err.status || 500).json({ error: err.message }); }
+
   const { title, description } = req.body || {};
-  if (typeof title === 'string') current.title = title.trim() || current.title;
-  if (typeof description === 'string') current.description = description.trim();
-  current.updatedAt = new Date().toISOString();
-  db.courses[idx] = current;
-  writeDB(db);
-  res.json(current);
+  if (typeof title === 'string') course.title = title.trim() || course.title;
+  if (typeof description === 'string') course.description = description.trim();
+  course.updatedAt = new Date().toISOString();
+  writeCourse(course);
+  res.json(course);
 });
 
 app.delete('/api/courses/:id', (req, res) => {
-  const db = readDB();
-  const before = db.courses.length;
-  db.courses = db.courses.filter((c) => c.id !== req.params.id);
-  if (db.courses.length === before) return res.status(404).json({ error: 'Course not found' });
-  writeDB(db);
-  res.json({ ok: true });
+  try {
+    // readCourse validates the id; if it doesn't exist we still treat that
+    // as a 404 even though the file is gone.
+    readCourse(req.params.id);
+    deleteCourseFile(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
 });
 
 // --- Lessons ---------------------------------------------------------------
@@ -171,20 +228,22 @@ function normalizeLesson(input) {
 }
 
 app.post('/api/courses/:id/lessons', (req, res) => {
-  const db = readDB();
-  const course = db.courses.find((c) => c.id === req.params.id);
-  if (!course) return res.status(404).json({ error: 'Course not found' });
+  let course;
+  try { course = readCourse(req.params.id); }
+  catch (err) { return res.status(err.status || 500).json({ error: err.message }); }
+
   const lesson = normalizeLesson(req.body || {});
   course.lessons.push(lesson);
   course.updatedAt = new Date().toISOString();
-  writeDB(db);
+  writeCourse(course);
   res.status(201).json(lesson);
 });
 
 app.put('/api/courses/:id/lessons/:lessonId', (req, res) => {
-  const db = readDB();
-  const course = db.courses.find((c) => c.id === req.params.id);
-  if (!course) return res.status(404).json({ error: 'Course not found' });
+  let course;
+  try { course = readCourse(req.params.id); }
+  catch (err) { return res.status(err.status || 500).json({ error: err.message }); }
+
   const lesson = findLesson(course, req.params.lessonId);
   if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
 
@@ -215,14 +274,15 @@ app.put('/api/courses/:id/lessons/:lessonId', (req, res) => {
   }
 
   course.updatedAt = new Date().toISOString();
-  writeDB(db);
+  writeCourse(course);
   res.json(lesson);
 });
 
 app.patch('/api/courses/:id/lessons/:lessonId/toggle', (req, res) => {
-  const db = readDB();
-  const course = db.courses.find((c) => c.id === req.params.id);
-  if (!course) return res.status(404).json({ error: 'Course not found' });
+  let course;
+  try { course = readCourse(req.params.id); }
+  catch (err) { return res.status(err.status || 500).json({ error: err.message }); }
+
   const lesson = findLesson(course, req.params.lessonId);
   if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
   lesson.isCompleted = !lesson.isCompleted;
@@ -230,7 +290,7 @@ app.patch('/api/courses/:id/lessons/:lessonId/toggle', (req, res) => {
   if (lesson.isCompleted) lesson.completeDate = new Date().toISOString();
   else lesson.completeDate = null;
   course.updatedAt = new Date().toISOString();
-  writeDB(db);
+  writeCourse(course);
   res.json(lesson);
 });
 
@@ -239,9 +299,10 @@ app.patch('/api/courses/:id/lessons/:lessonId/toggle', (req, res) => {
 // appended at the end in their previous relative order, so a missing id is
 // never silently dropped. Unknown ids are ignored.
 app.patch('/api/courses/:id/lessons/reorder', (req, res) => {
-  const db = readDB();
-  const course = db.courses.find((c) => c.id === req.params.id);
-  if (!course) return res.status(404).json({ error: 'Course not found' });
+  let course;
+  try { course = readCourse(req.params.id); }
+  catch (err) { return res.status(err.status || 500).json({ error: err.message }); }
+
   const order = Array.isArray(req.body && req.body.order) ? req.body.order : null;
   if (!order) return res.status(400).json({ error: 'order must be an array of lesson ids' });
 
@@ -262,19 +323,20 @@ app.patch('/api/courses/:id/lessons/reorder', (req, res) => {
   }
   course.lessons = next;
   course.updatedAt = new Date().toISOString();
-  writeDB(db);
+  writeCourse(course);
   res.json(course);
 });
 
 app.delete('/api/courses/:id/lessons/:lessonId', (req, res) => {
-  const db = readDB();
-  const course = db.courses.find((c) => c.id === req.params.id);
-  if (!course) return res.status(404).json({ error: 'Course not found' });
+  let course;
+  try { course = readCourse(req.params.id); }
+  catch (err) { return res.status(err.status || 500).json({ error: err.message }); }
+
   const before = course.lessons.length;
   course.lessons = course.lessons.filter((l) => l.id !== req.params.lessonId);
   if (course.lessons.length === before) return res.status(404).json({ error: 'Lesson not found' });
   course.updatedAt = new Date().toISOString();
-  writeDB(db);
+  writeCourse(course);
   res.json({ ok: true });
 });
 
@@ -335,8 +397,8 @@ app.post('/api/upload-path', (req, res) => {
   });
 });
 
-// --- Sync db.json to the remote (git add/commit/push) ---------------------
-// Runs `git add db.json && git commit -m "synced" && git push origin main` from
+// --- Sync the db/ folder to the remote (git add/commit/push) ---------------
+// Runs `git add db/ && git commit -m "synced" && git push origin main` from
 // the server's cwd. Returns a small JSON report so the UI can toast the result.
 // If there's nothing to commit, the commit step is skipped (no error). If the
 // push fails (e.g. no network), the commit is kept locally and the error is
@@ -355,14 +417,14 @@ app.post('/api/sync', (_req, res) => {
   (async () => {
     try {
       // Make sure git sees a change worth committing.
-      const status = await run('git', ['status', '--porcelain', '--', 'db.json']);
+      const status = await run('git', ['status', '--porcelain', '--', 'db/']);
       if (status.err) {
         return res.status(500).json({ ok: false, error: 'git status failed: ' + status.stderr.trim() });
       }
       const dirty = status.stdout.trim().length > 0;
 
       if (dirty) {
-        const add = await run('git', ['add', 'db.json']);
+        const add = await run('git', ['add', 'db/']);
         if (add.err) return res.status(500).json({ ok: false, error: 'git add failed: ' + add.stderr.trim() });
 
         const commit = await run('git', ['commit', '-m', 'synced']);
@@ -396,39 +458,97 @@ app.post('/api/sync', (_req, res) => {
   })();
 });
 
-// --- Heal existing lessons that still reference raw local paths ----------
-// On every read, normalize any "C:\..." or "file:///..." resources to /uploads/...
-// so old data becomes usable. This mutates db.json in place.
-function healLocalPaths(db) {
+// --- Heal a course's lessons that still reference raw local paths ---------
+// Normalize any "C:\..." or "file:///..." resources to /uploads/... so old
+// data becomes usable. Mutates the course object in place; caller is
+// responsible for persisting the change via writeCourse().
+function healCourseLocalPaths(course) {
   let changed = false;
-  for (const course of db.courses) {
-    for (const lesson of course.lessons || []) {
-      const r = lesson.resource;
-      if (!r) continue;
-      if (/^https?:\/\//i.test(r) || r.startsWith('/uploads/')) continue;
-      // Looks like a local path
-      if (/^[a-z]:[\\/]/i.test(r) || r.startsWith('file:') || r.startsWith('/') || r.startsWith('\\')) {
-        try {
-          let abs = r;
-          if (/^file:\/\//i.test(abs)) abs = abs.replace(/^file:\/\//i, '');
-          abs = abs.replace(/\\/g, '/');
-          if (!path.isAbsolute(abs)) abs = path.resolve(process.cwd(), abs);
-          if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
-            const original = path.basename(abs);
-            const safe = original.replace(/[^a-zA-Z0-9._-]/g, '_');
-            const dest = path.join(UPLOAD_DIR, `${Date.now()}-${uuid().slice(0, 8)}-${safe}`);
-            fs.copyFileSync(abs, dest);
-            lesson.resource = `/uploads/${path.basename(dest)}`;
-            changed = true;
-          }
-        } catch (err) {
-          // leave as-is; UI will show a clear error
+  for (const lesson of course.lessons || []) {
+    const r = lesson.resource;
+    if (!r) continue;
+    if (/^https?:\/\//i.test(r) || r.startsWith('/uploads/')) continue;
+    // Looks like a local path
+    if (/^[a-z]:[\\/]/i.test(r) || r.startsWith('file:') || r.startsWith('/') || r.startsWith('\\')) {
+      try {
+        let abs = r;
+        if (/^file:\/\//i.test(abs)) abs = abs.replace(/^file:\/\//i, '');
+        abs = abs.replace(/\\/g, '/');
+        if (!path.isAbsolute(abs)) abs = path.resolve(process.cwd(), abs);
+        if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
+          const original = path.basename(abs);
+          const safe = original.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const dest = path.join(UPLOAD_DIR, `${Date.now()}-${uuid().slice(0, 8)}-${safe}`);
+          fs.copyFileSync(abs, dest);
+          lesson.resource = `/uploads/${path.basename(dest)}`;
+          changed = true;
         }
+      } catch (err) {
+        // leave as-is; UI will show a clear error
       }
     }
   }
   return changed;
 }
+
+// --- Export / import individual course JSON files -------------------------
+// GET /api/courses/:id/export
+//   Sends the course object back as a downloadable .json file. Filename is
+//   derived from the title (sanitised) so it lands sensibly in the user's
+//   downloads folder.
+// POST /api/courses/import
+//   Accepts a course JSON in the body, mints a fresh id / lesson ids so the
+//   imported course never collides with the recipient's existing data, and
+//   writes it into db/. Returns the new course.
+
+function safeFilenameBase(title) {
+  return (title || 'course')
+    .toString()
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60) || 'course';
+}
+
+app.get('/api/courses/:id/export', (req, res) => {
+  let course;
+  try { course = readCourse(req.params.id); }
+  catch (err) { return res.status(err.status || 500).json({ error: err.message }); }
+
+  const filename = `${safeFilenameBase(course.title)}-${course.id.slice(0, 8)}.json`;
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(JSON.stringify(course, null, 2));
+});
+
+app.post('/api/courses/import', (req, res) => {
+  const body = req.body;
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return res.status(400).json({ error: 'A course JSON object is required in the request body' });
+  }
+  if (typeof body.title !== 'string' || !body.title.trim()) {
+    return res.status(400).json({ error: 'Imported course is missing a title' });
+  }
+
+  const now = new Date().toISOString();
+  const lessons = Array.isArray(body.lessons) ? body.lessons : [];
+  // Re-normalise so every lesson gets a fresh id and any missing fields are
+  // filled in. This keeps the imported course consistent with courses created
+  // through the normal UI.
+  const normalisedLessons = lessons.map((l) => normalizeLesson(l));
+
+  const course = {
+    id: uuid(),
+    title: body.title.trim(),
+    description: typeof body.description === 'string' ? body.description.trim() : '',
+    createdAt: now,
+    updatedAt: now,
+    lessons: normalisedLessons,
+  };
+
+  writeCourse(course);
+  res.status(201).json(course);
+});
 
 // --- Fallback to index.html for client routes ------------------------------
 app.get(/^\/(?!api|uploads).*/, (_req, res) => {
