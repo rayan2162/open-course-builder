@@ -3,7 +3,7 @@
   "title": "backend",
   "description": "",
   "createdAt": "2026-06-07T07:48:09.746Z",
-  "updatedAt": "2026-06-07T07:48:31.116Z",
+  "updatedAt": "2026-06-07T08:38:19.115Z",
   "lessons": [
     {
       "id": "b220fbf1-2447-4578-bb34-eb3f9e8f5e89",
@@ -11,8 +11,8 @@
       "type": "youtube",
       "resource": "https://www.youtube.com/watch?v=1iDrQta26zo&list=RD1iDrQta26zo&start_radio=1",
       "notes": "",
-      "isCompleted": false,
-      "completeDate": null,
+      "isCompleted": true,
+      "completeDate": "2026-06-07T08:38:19.115Z",
       "createdAt": "2026-06-07T07:48:31.116Z"
     }
   ]
