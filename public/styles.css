@@ -492,9 +492,11 @@ body {
 
 .preview-frame {
   width: 100%;
-  min-height: 60vh;
+  height: 100%;
+  min-height: 0;
   background: #000;
   border: 0;
+  display: block;
 }
 
 .preview-image {
@@ -562,6 +564,24 @@ body {
 .preview-markdown table { border-collapse: collapse; margin: 0.6em 0; }
 .preview-markdown th,
 .preview-markdown td  { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; }
+
+/* Resource preview modal: ~80% width, 65% height of the viewport */
+#previewModal .modal-dialog {
+  width: 80vw;
+  max-width: 80vw;
+  height: 65vh;
+  margin: 5vh auto;
+}
+#previewModal .modal-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+#previewModal .modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
 
 /* Preview modal */
 .drop-zone {
