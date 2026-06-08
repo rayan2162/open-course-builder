@@ -3,7 +3,7 @@
   "title": "web dev",
   "description": "hello",
   "createdAt": "2026-06-07T10:05:38.290Z",
-  "updatedAt": "2026-06-08T05:43:46.079Z",
+  "updatedAt": "2026-06-08T05:44:38.836Z",
   "lessons": [
     {
       "id": "14b0f792-08a0-43d7-b126-b998524e0e5f",
@@ -21,8 +21,8 @@
       "type": "video",
       "resource": "/uploads/1780827865471-44e35aaa-PinkPantheress_Stateside___Zara_Larsson_Lyrics__Color_Coded_Lyrics_.mp4",
       "notes": "",
-      "isCompleted": true,
-      "completeDate": "2026-06-08T05:43:46.079Z",
+      "isCompleted": false,
+      "completeDate": null,
       "createdAt": "2026-06-07T10:24:26.720Z"
     }
   ]
