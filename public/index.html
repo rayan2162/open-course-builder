@@ -12,6 +12,10 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.1/github-markdown.min.css"
+    />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -27,7 +31,7 @@
           <button class="btn btn-primary btn-sm ocb-action-btn" id="newCourseBtn">
             <i class="bi bi-plus-lg me-1"></i> New Course
           </button>
-          <button class="btn btn-outline-secondary btn-sm" id="importCourseBtn" title="Import a course JSON file or paste one from someone else">
+          <button class="btn btn-outline-secondary btn-sm ocb-action-btn" id="importCourseBtn" title="Import a course JSON file or paste one from someone else">
             <i class="bi bi-upload"></i>
             <span class="d-none d-md-inline ms-1">Import</span>
           </button>
@@ -362,14 +366,60 @@
 
     <!-- Resource preview modal -->
     <div class="modal fade" id="previewModal" tabindex="-1">
-      <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-dialog modal-xl modal-dialog-centered preview-modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title me-2" id="previewTitle">Preview</h5>
+            <a
+              type="button"
+              class="btn btn-sm btn-outline-secondary me-2 d-none"
+              id="previewOpenExternalBtn"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open this resource in a new tab"
+            >
+              <i class="bi bi-box-arrow-up-right me-1"></i> Open in new tab
+            </a>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
-          <div class="modal-body p-0 bg-dark" id="previewBody" style="min-height: 300px;">
-            <div class="text-center text-white-50 py-5">Loading...</div>
+          <div class="modal-body p-0 preview-modal-body" id="previewModalBody">
+            <div class="preview-content" id="previewBody" style="min-height: 300px;">
+              <div class="text-center text-white-50 py-5">Loading...</div>
+            </div>
+            <aside class="preview-note-pane" id="previewNotePane" aria-label="Lesson note">
+              <div class="preview-note-head">
+                <div class="preview-note-head-text">
+                  <i class="bi bi-journal-text me-1"></i>
+                  <strong>My note</strong>
+                </div>
+                <div class="preview-note-toggle btn-group btn-group-sm" role="group" aria-label="Toggle between edit and view">
+                  <button type="button" class="btn btn-outline-secondary active" id="previewNoteEditBtn" data-mode="edit">
+                    <i class="bi bi-pencil"></i> Edit
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary" id="previewNoteViewBtn" data-mode="view">
+                    <i class="bi bi-eye"></i> View
+                  </button>
+                </div>
+              </div>
+              <div class="preview-note-edit" id="previewNoteEditWrap">
+                <textarea
+                  id="previewNoteInput"
+                  class="form-control preview-note-input"
+                  placeholder="# Heading&#10;&#10;Write your learning notes in **markdown**...&#10;&#10;- bullet&#10;- [link](https://example.com)&#10;```js&#10;console.log('hi');&#10;```"
+                  spellcheck="false"
+                ></textarea>
+                <div class="preview-note-status small text-muted" id="previewNoteStatus" aria-live="polite">
+                  <i class="bi bi-cloud-check"></i> Saved
+                </div>
+              </div>
+              <div class="preview-note-view d-none" id="previewNoteViewWrap">
+                <div class="preview-markdown preview-note-rendered" id="previewNoteRendered"></div>
+                <div class="preview-note-empty text-muted text-center d-none" id="previewNoteEmpty">
+                  <i class="bi bi-pencil-square display-6 d-block mb-2"></i>
+                  Nothing here yet — switch to <strong>Edit</strong> to write your note.
+                </div>
+              </div>
+            </aside>
           </div>
         </div>
       </div>
