@@ -8,7 +8,9 @@
     "dev": "node server.js"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "express": "^4.19.2",
+    "groq-sdk": "^1.2.1",
     "uuid": "^14.0.0"
   }
 }
