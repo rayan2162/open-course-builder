@@ -161,6 +161,9 @@
             <button class="btn btn-primary ocb-action-btn" id="addLessonBtn">
               <i class="bi bi-plus-lg"></i> Add lesson
             </button>
+            <button class="btn btn-outline-primary ocb-action-btn" id="addTaskBtn">
+              <i class="bi bi-plus-lg"></i> Add task
+            </button>
           </div>
         </div>
         <p class="text-muted" id="detailDescription"></p>
@@ -198,6 +201,12 @@
           <div class="detail-progress-fill" id="detailProgressBar"></div>
         </div>
         <div id="lessonsList"></div>
+
+        <div class="detail-subsection-head mt-4">
+          <h5 class="mb-0">Tasks</h5>
+          <p class="text-muted small mb-0">Practice questions answered by an LLM tutor.</p>
+        </div>
+        <div id="tasksList" class="d-flex flex-column gap-2"></div>
       </section>
     </main>
 
@@ -474,6 +483,107 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add / Edit Task Modal (instructor) -->
+    <div class="modal fade" id="taskModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="taskModalTitle">Add task</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="taskForm">
+              <div class="mb-3">
+                <label class="form-label">Task title</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="taskTitleInput"
+                  required
+                  maxlength="160"
+                  placeholder="e.g. Explain flexbox justify-content"
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Question (Markdown)</label>
+                <textarea
+                  class="form-control font-monospace"
+                  id="taskQuestionInput"
+                  rows="5"
+                  placeholder="The question the learner will see. Supports **bold**, lists, code blocks, etc."
+                ></textarea>
+                <div class="form-text">Visible to learners.</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">LLM instruction</label>
+                <textarea
+                  class="form-control font-monospace"
+                  id="taskInstructionInput"
+                  rows="6"
+                  placeholder="Hidden from learners. Give Groq the context, the grading rules, and the feedback format you want."
+                ></textarea>
+                <div class="form-text">
+                  Hidden from learners. Used to tell the LLM how to evaluate the learner's answer and
+                  how to format its feedback.
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="saveTaskBtn">Create task</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Task runner modal (learner) -->
+    <div class="modal fade" id="taskRunnerModal" tabindex="-1">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="taskRunnerTitle">Task</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="task-split">
+              <div>
+                <div class="task-split-label">Question</div>
+                <div
+                  id="taskRunnerQuestion"
+                  class="markdown-body task-pane task-pane-question border rounded p-3 bg-white"
+                ></div>
+              </div>
+              <div>
+                <div class="task-split-label">Your answer</div>
+                <textarea
+                  id="taskRunnerAnswer"
+                  class="form-control task-pane task-pane-answer"
+                  rows="14"
+                  placeholder="Write your answer here. You can use Markdown."
+                ></textarea>
+                <div class="d-flex justify-content-end mt-2">
+                  <button type="button" class="btn btn-primary" id="taskRunnerSubmit">
+                    <i class="bi bi-send me-1"></i> Submit
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="task-feedback-wrap mt-3">
+              <div class="task-feedback-head">
+                <strong>LLM feedback</strong>
+                <span id="taskRunnerSpinner" class="spinner-border spinner-border-sm text-primary d-none ms-2" role="status" aria-hidden="true"></span>
+              </div>
+              <div id="taskRunnerFeedback" class="markdown-body task-pane task-feedback border rounded p-3 bg-light">
+                <span class="text-muted">Submit your answer to receive feedback.</span>
+              </div>
+            </div>
+            <div id="taskRunnerSubmissions" class="mt-3"></div>
           </div>
         </div>
       </div>
