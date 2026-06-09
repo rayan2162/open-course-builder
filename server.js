@@ -204,6 +204,9 @@ app.delete('/api/courses/:id', (req, res) => {
 function normalizeLesson(input) {
   const title = (input.title || 'Untitled lesson').toString().trim() || 'Untitled lesson';
   const notes = (input.notes || '').toString();
+  // User-authored learning note (markdown). Distinct from `notes` which is the
+  // resource's own text content for text/markdown lessons.
+  const lessonNote = (input.lessonNote || '').toString();
   // resource can be a string URL/path OR an object {type, value, name}
   let resource = input.resource ?? '';
   let type = (input.type || '').toString().toLowerCase();
@@ -221,6 +224,7 @@ function normalizeLesson(input) {
     type: type || 'text',
     resource: typeof resource === 'string' ? resource : '',
     notes,
+    lessonNote,
     isCompleted: Boolean(input.isCompleted),
     completeDate: input.isCompleted ? new Date().toISOString() : null,
     createdAt: new Date().toISOString(),
@@ -250,6 +254,7 @@ app.put('/api/courses/:id/lessons/:lessonId', (req, res) => {
   const { title, type, resource, notes, isCompleted } = req.body || {};
   if (typeof title === 'string' && title.trim()) lesson.title = title.trim();
   if (typeof notes === 'string') lesson.notes = notes;
+  if (req.body && typeof req.body.lessonNote === 'string') lesson.lessonNote = req.body.lessonNote;
   if (typeof isCompleted === 'boolean') {
     const was = lesson.isCompleted;
     lesson.isCompleted = isCompleted;
@@ -292,6 +297,31 @@ app.patch('/api/courses/:id/lessons/:lessonId/toggle', (req, res) => {
   course.updatedAt = new Date().toISOString();
   writeCourse(course);
   res.json(lesson);
+});
+
+// Real-time save for the lesson's own learning note (markdown). Called on
+// every keystroke (debounced client-side). Only updates the `lessonNote`
+// field so we don't have to read/rewrite the whole course to persist typing.
+app.put('/api/courses/:id/lessons/:lessonId/note', (req, res) => {
+  let course;
+  try { course = readCourse(req.params.id); }
+  catch (err) { return res.status(err.status || 500).json({ error: err.message }); }
+
+  const lesson = findLesson(course, req.params.lessonId);
+  if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
+
+  const note = (req.body && typeof req.body.lessonNote === 'string') ? req.body.lessonNote : null;
+  if (note === null) return res.status(400).json({ error: 'lessonNote must be a string' });
+
+  // Cap to a generous size to keep individual course files small + sane.
+  if (note.length > 500 * 1024) {
+    return res.status(413).json({ error: 'lessonNote too large (>500KB)' });
+  }
+
+  lesson.lessonNote = note;
+  course.updatedAt = new Date().toISOString();
+  writeCourse(course);
+  res.json({ ok: true, lessonNote: lesson.lessonNote, updatedAt: course.updatedAt });
 });
 
 // Reorder the lessons within a course. The client sends the full new order
