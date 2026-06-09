@@ -279,10 +279,7 @@
                     <button class="nav-link active" data-tab="link" type="button">Link</button>
                   </li>
                   <li class="nav-item">
-                    <button class="nav-link" data-tab="upload" type="button">Upload file</button>
-                  </li>
-                  <li class="nav-item">
-                    <button class="nav-link" data-tab="note" type="button">Text note</button>
+                    <button class="nav-link" data-tab="note" type="button">Note</button>
                   </li>
                   <li class="nav-item">
                     <button class="nav-link" data-tab="markdown" type="button">Markdown</button>
@@ -294,24 +291,14 @@
                     type="text"
                     class="form-control"
                     id="resourceLinkInput"
-                    placeholder="https://youtube.com/watch?v=...  or  C:\Users\you\file.pdf  or  /home/you/notes.txt"
+                    placeholder="https://example.com/article"
                   />
                   <div class="form-text">
-                    YouTube, article, or website links — or paste a <strong>local file path</strong>
-                    (e.g. <code>C:\Users\you\video.mp4</code>) and the file will be imported.
+                    Paste any <strong>URL</strong> (article, YouTube, website, etc.).
                   </div>
                 </div>
 
-                <div class="tab-pane d-none" data-pane="upload">
-                  <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="Click or drop a file to upload">
-                    <i class="bi bi-cloud-arrow-up drop-zone-icon"></i>
-                    <div class="drop-zone-title">Drop a file here</div>
-                    <div class="drop-zone-sub">or click to browse</div>
-                    <input type="file" class="d-none" id="resourceFileInput" />
-                  </div>
-                  <div class="form-text">PDF, MP3, MP4, PNG, JPG, MD up to 200MB.</div>
-                  <div id="uploadedFileInfo" class="mt-2 small text-muted"></div>
-                </div>
+
 
                 <div class="tab-pane d-none" data-pane="note">
                   <textarea
