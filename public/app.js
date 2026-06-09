@@ -82,7 +82,19 @@
     previewModalEl: $('#previewModal'),
     previewTitle: $('#previewTitle'),
     previewBody: $('#previewBody'),
+    previewOpenExternalBtn: $('#previewOpenExternalBtn'),
     previewModal: $('#previewModal') ? new bootstrap.Modal($('#previewModal')) : null,
+
+    // Lesson note pane (sits inside the preview modal)
+    previewNotePane: $('#previewNotePane'),
+    previewNoteEditBtn: $('#previewNoteEditBtn'),
+    previewNoteViewBtn: $('#previewNoteViewBtn'),
+    previewNoteEditWrap: $('#previewNoteEditWrap'),
+    previewNoteViewWrap: $('#previewNoteViewWrap'),
+    previewNoteInput: $('#previewNoteInput'),
+    previewNoteRendered: $('#previewNoteRendered'),
+    previewNoteEmpty: $('#previewNoteEmpty'),
+    previewNoteStatus: $('#previewNoteStatus'),
 
     confirmModalEl: $('#confirmModal'),
     confirmTitle: $('#confirmTitle'),
@@ -1274,10 +1286,154 @@
       openPreview(lesson);
       return;
     }
-    // Link-based / external / unknown types → new tab.
+    // Link-based / external / unknown types → open the resource in a new tab
+    // AND open the preview modal so the user can still take a lesson note.
+    // The modal's content area is hidden for these types (see
+    // `noContentTypes` inside `openPreview`) and the note pane takes the full
+    // modal width.
     if (resource) {
       window.open(resource, '_blank', 'noopener,noreferrer');
     }
+    openPreview(lesson);
+  }
+
+  // ---------- Lesson note pane -------------------------------------------
+  // Per-lesson markdown note that lives in the preview modal. Edit mode =
+  // raw <textarea> in monospace; View mode = sanitized GitHub-flavored
+  // markdown. Saves to the lesson's `lessonNote` field in real time (debounced).
+  const lessonNoteState = {
+    courseId: null,
+    lessonId: null,
+    saveTimer: null,
+    inflight: null,
+    lastSavedValue: '',
+    mode: 'edit', // 'edit' | 'view'
+    bound: false,
+  };
+
+  const LESSON_NOTE_SAVE_DEBOUNCE_MS = 400;
+
+  function setNoteStatus(state, msg, icon) {
+    if (!els.previewNoteStatus) return;
+    els.previewNoteStatus.classList.remove('is-saving', 'is-error', 'is-saved');
+    if (state) els.previewNoteStatus.classList.add(`is-${state}`);
+    const iconClass = icon || (
+      state === 'is-saving' ? 'bi-arrow-repeat spin-anim' :
+      state === 'is-error'  ? 'bi-exclamation-triangle' :
+      state === 'is-saved'  ? 'bi-cloud-check' : 'bi-cloud-check'
+    );
+    els.previewNoteStatus.innerHTML = `<i class="bi ${iconClass}"></i> ${escapeHtml(msg)}`;
+  }
+
+  function renderLessonNoteView() {
+    const raw = els.previewNoteInput ? els.previewNoteInput.value : '';
+    const trimmed = (raw || '').trim();
+    if (!trimmed) {
+      els.previewNoteRendered.innerHTML = '';
+      els.previewNoteRendered.classList.add('d-none');
+      els.previewNoteEmpty.classList.remove('d-none');
+      return;
+    }
+    els.previewNoteRendered.classList.remove('d-none');
+    els.previewNoteEmpty.classList.add('d-none');
+    els.previewNoteRendered.innerHTML = renderMarkdown(raw);
+  }
+
+  function setLessonNoteMode(mode) {
+    lessonNoteState.mode = mode === 'view' ? 'view' : 'edit';
+    const isView = lessonNoteState.mode === 'view';
+    els.previewNoteEditWrap.classList.toggle('d-none', isView);
+    els.previewNoteViewWrap.classList.toggle('d-none', !isView);
+    els.previewNoteEditBtn.classList.toggle('active', !isView);
+    els.previewNoteViewBtn.classList.toggle('active', isView);
+    if (isView) renderLessonNoteView();
+  }
+
+  function scheduleLessonNoteSave() {
+    if (!lessonNoteState.courseId || !lessonNoteState.lessonId) return;
+    if (lessonNoteState.saveTimer) clearTimeout(lessonNoteState.saveTimer);
+    setNoteStatus('is-saving', 'Saving…', 'bi-arrow-repeat spin-anim');
+    lessonNoteState.saveTimer = setTimeout(flushLessonNoteSave, LESSON_NOTE_SAVE_DEBOUNCE_MS);
+  }
+
+  async function flushLessonNoteSave() {
+    if (!lessonNoteState.courseId || !lessonNoteState.lessonId) return;
+    const value = els.previewNoteInput ? els.previewNoteInput.value : '';
+    // If the latest typed value matches what we already persisted, skip.
+    if (value === lessonNoteState.lastSavedValue && !lessonNoteState.inflight) {
+      setNoteStatus('is-saved', 'Saved');
+      return;
+    }
+    // Coalesce: if a request is already running, wait for it then re-flush.
+    if (lessonNoteState.inflight) {
+      try { await lessonNoteState.inflight; } catch (_) { /* ignore */ }
+      return flushLessonNoteSave();
+    }
+    const courseId = lessonNoteState.courseId;
+    const lessonId = lessonNoteState.lessonId;
+    const p = (async () => {
+      try {
+        const res = await api('PUT', `/api/courses/${courseId}/lessons/${lessonId}/note`, {
+          lessonNote: value,
+        });
+        lessonNoteState.lastSavedValue = value;
+        // Keep the in-memory lesson in sync so a subsequent open shows the latest value.
+        const course = state.courses.find((c) => c.id === courseId);
+        if (course) {
+          const lesson = (course.lessons || []).find((l) => l.id === lessonId);
+          if (lesson) lesson.lessonNote = res && typeof res.lessonNote === 'string' ? res.lessonNote : value;
+        }
+        setNoteStatus('is-saved', 'Saved');
+      } catch (err) {
+        setNoteStatus('is-error', 'Save failed', 'bi-exclamation-triangle');
+        toast('Could not save note: ' + err.message);
+      } finally {
+        lessonNoteState.inflight = null;
+      }
+    })();
+    lessonNoteState.inflight = p;
+    await p;
+  }
+
+  function initLessonNotePane(lesson) {
+    if (!els.previewNotePane) return;
+    // Cancel any pending save from a previously-opened lesson before swapping.
+    if (lessonNoteState.saveTimer) {
+      clearTimeout(lessonNoteState.saveTimer);
+      lessonNoteState.saveTimer = null;
+    }
+    // Flush any in-flight save for the previous lesson so we don't lose data.
+    // We don't await — the modal is already moving on, but the request keeps going.
+
+    lessonNoteState.courseId = state.activeCourseId;
+    lessonNoteState.lessonId = lesson && lesson.id;
+    lessonNoteState.lastSavedValue = (lesson && typeof lesson.lessonNote === 'string') ? lesson.lessonNote : '';
+
+    // Wire the toggle and input handlers once.
+    if (!lessonNoteState.bound) {
+      lessonNoteState.bound = true;
+      els.previewNoteEditBtn.addEventListener('click', () => setLessonNoteMode('edit'));
+      els.previewNoteViewBtn.addEventListener('click', () => setLessonNoteMode('view'));
+      els.previewNoteInput.addEventListener('input', () => {
+        scheduleLessonNoteSave();
+      });
+      // Flush on close so the very last keystroke isn't lost when the user
+      // dismisses the modal quickly.
+      els.previewModalEl.addEventListener('hide.bs.modal', () => {
+        if (lessonNoteState.saveTimer) {
+          clearTimeout(lessonNoteState.saveTimer);
+          lessonNoteState.saveTimer = null;
+        }
+        flushLessonNoteSave();
+      });
+    }
+
+    // Populate the editor with the persisted value.
+    els.previewNoteInput.value = lessonNoteState.lastSavedValue;
+
+    // Default to View mode if the note already has content, Edit mode otherwise.
+    setLessonNoteMode(lessonNoteState.lastSavedValue.trim() ? 'view' : 'edit');
+    setNoteStatus('is-saved', 'Saved');
   }
 
   // Some destinations send `X-Frame-Options: DENY` or
@@ -1292,6 +1448,8 @@
     const body = els.previewBody;
     const type = lesson.type;
     const resource = lesson.resource || '';
+
+    initLessonNotePane(lesson);
 
     // Sync-rendered types (text/markdown) skip the loading flash; async/media types
     // show a brief "Loading..." placeholder while the iframe/img loads.
@@ -1330,6 +1488,24 @@
       // button above is the user-facing workaround.
       body.innerHTML = `<iframe class="preview-frame" src="${escapeHtml(resource)}" referrerpolicy="no-referrer"></iframe>`;
     }
+
+    // "No content in modal" case: types like `website` open the URL in a new
+    // tab from `openLessonResource`, so the in-modal preview area is empty.
+    // The note pane then takes the full modal width. We also reveal the header
+    // "Open in new tab" button so the user can re-open the URL from inside the
+    // modal if the first new-tab window was closed.
+    const noContentTypes = new Set(['website', 'article', 'link']);
+    const isNoContent = noContentTypes.has(type);
+    if (els.previewModalEl) {
+      els.previewModalEl.classList.toggle('preview-modal--no-content', isNoContent);
+    }
+    if (els.previewOpenExternalBtn) {
+      const href = (lesson && lesson.resource) ? String(lesson.resource) : '';
+      // Anchor tag — only safe to set href when we have a real URL.
+      els.previewOpenExternalBtn.setAttribute('href', href || '#');
+      els.previewOpenExternalBtn.classList.toggle('d-none', !(isNoContent && href));
+    }
+
     bs.previewModal.show();
   }
 
