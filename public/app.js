@@ -10,7 +10,6 @@
     courseDraftLessons: [],
     // lesson modal transient state
     lessonEditingId: null,
-    lessonUploaded: null, // { name, path, size, mimetype } from /api/upload
   };
 
   // ---------- DOM refs -----------------------------------------------------
@@ -71,9 +70,6 @@
     lessonTitleInput: $('#lessonTitleInput'),
     resourceTabs: $('#resourceTabs'),
     resourceLinkInput: $('#resourceLinkInput'),
-    resourceFileInput: $('#resourceFileInput'),
-    dropZone: $('#dropZone'),
-    uploadedFileInfo: $('#uploadedFileInfo'),
     resourceNoteInput: $('#resourceNoteInput'),
     resourceMarkdownInput: $('#resourceMarkdownInput'),
     lessonNotesInput: $('#lessonNotesInput'),
@@ -148,36 +144,6 @@
     } catch (err) {
       return `<pre class="preview-text">${escapeHtml(raw)}</pre>`;
     }
-  }
-
-  // True if the pasted string looks like a local filesystem path
-  // (Windows drive letter, UNC path, file:// URL, or POSIX absolute path),
-  // rather than a normal web URL.
-  function isLocalFilePath(value) {
-    if (!value) return false;
-    const v = value.trim();
-    if (/^file:\/\//i.test(v)) return true;          // file:///C:/... or file://...
-    if (/^[a-z]:[\\/]/i.test(v)) return true;         // C:\... or C:/...
-    if (/^[\\/]{2}[^\\/]/.test(v)) return true;       // \\server\share
-    // POSIX absolute path: starts with / and doesn't look like a web path
-    // (no scheme, no leading //). Exclude things like "/uploads/foo" the user
-    // might paste, but those are handled by the existing logic anyway.
-    if (v.startsWith('/') && !/^\/[a-z]+\//i.test(v.replace(/^\/+/, ''))) {
-      // Heuristic: treat /Users/..., /home/..., /tmp/..., /var/... as local
-      return /^\/(Users|home|tmp|var|root|opt|mnt|media|srv|etc)\//i.test(v);
-    }
-    return false;
-  }
-
-  function youtubeEmbed(url) {
-    try {
-      const u = new URL(url);
-      let id = '';
-      if (u.hostname.includes('youtu.be')) id = u.pathname.slice(1);
-      else id = u.searchParams.get('v') || '';
-      if (!id) return null;
-      return `https://www.youtube.com/embed/${id}`;
-    } catch { return null; }
   }
 
   function typeIcon(type) {
@@ -685,22 +651,19 @@
         const isExternal = /^https?:\/\//i.test(l.resource || '');
         const targetAttr = isExternal ? 'target="_blank" rel="noopener noreferrer"' : '';
         // Inline-able types: just a link/website. Everything else opens in the preview modal.
-        const isInlineLink = (l.type === 'website' || l.type === 'article' || l.type === 'youtube') && l.resource;
-        const previewable = ['pdf', 'image', 'video', 'audio', 'text', 'markdown'].includes(l.type);
+        const isInlineLink = (l.type === 'link' || l.type === 'website' || l.type === 'article') && l.resource;
+        const previewable = (l.type === 'text' || l.type === 'markdown');
         // For text/markdown we never render the body inline; it always opens in the modal.
         const inlineNote = (l.notes && l.type !== 'text' && l.type !== 'markdown')
           ? `<p class="mb-0 mt-2 small text-muted">${escapeHtml(l.notes)}</p>` : '';
         // Build a prominent action button (text/markdown always open in modal,
-        // upload types preview, link types open externally).
+        // link types open externally).
         let actionHtml = '';
         if (isInlineLink) {
           actionHtml = `<a href="${escapeHtml(resourceHref)}" ${targetAttr} class="btn btn-sm btn-outline-primary lesson-open-btn">${isExternal ? '<i class="bi bi-box-arrow-up-right"></i> Open' : '<i class="bi bi-eye"></i> Preview'}</a>`;
         } else if (previewable) {
-          const icon = l.type === 'text' ? 'bi-file-text'
-                     : l.type === 'markdown' ? 'bi-markdown'
-                     : 'bi-eye';
-          const label = (l.type === 'text' || l.type === 'markdown') ? 'Open note' : 'Preview';
-          actionHtml = `<a href="#" class="btn btn-sm btn-outline-primary lesson-open-btn open-preview"><i class="bi ${icon}"></i> ${label}</a>`;
+          const icon = l.type === 'text' ? 'bi-file-text' : 'bi-markdown';
+          actionHtml = `<a href="#" class="btn btn-sm btn-outline-primary lesson-open-btn open-preview"><i class="bi ${icon}"></i> Open note</a>`;
         }
         // A short snippet preview of text/markdown body so users know what's inside.
         let snippetHtml = '';
@@ -1002,9 +965,6 @@
     els.resourceLinkInput.value = '';
     els.resourceNoteInput.value = '';
     els.resourceMarkdownInput.value = '';
-    els.resourceFileInput.value = '';
-    els.uploadedFileInfo.textContent = '';
-    state.lessonUploaded = null;
     state.lessonEditingId = null;
     activateResourceTab('link');
   }
@@ -1037,7 +997,7 @@
       const notesHoldResource = (lesson.type === 'text' || lesson.type === 'markdown');
       els.lessonNotesInput.value = notesHoldResource ? '' : (lesson.notes || '');
 
-      if (['youtube', 'article', 'website'].includes(lesson.type) && /^https?:\/\//i.test(lesson.resource || '')) {
+      if (['youtube', 'article', 'website', 'link'].includes(lesson.type) && /^https?:\/\//i.test(lesson.resource || '')) {
         els.resourceLinkInput.value = lesson.resource;
         activateResourceTab('link');
       } else if (lesson.type === 'text' && (!lesson.resource || !/^https?:\/\//i.test(lesson.resource))) {
@@ -1048,9 +1008,9 @@
         els.resourceMarkdownInput.value = lesson.notes || lesson.resource || '';
         activateResourceTab('markdown');
       } else {
-        // Treat as uploaded file (path-based)
-        activateResourceTab('upload');
-        els.uploadedFileInfo.innerHTML = `Current file: <a href="${escapeHtml(lesson.resource)}" target="_blank" rel="noopener noreferrer">${escapeHtml(lesson.resource.split('/').pop())}</a>`;
+        // Unknown / legacy type — fall back to link tab so the resource URL is visible.
+        els.resourceLinkInput.value = lesson.resource || '';
+        activateResourceTab('link');
       }
     }
     bs.lessonModal.show();
@@ -1076,27 +1036,7 @@
         return;
       }
       els.resourceLinkInput.classList.remove('is-invalid');
-      // If the user pasted a local file path (Windows: C:\... or file:///C:/...,
-      // or an absolute path on any OS), ask the server to copy it into /uploads
-      // so the browser can actually open it.
-      if (isLocalFilePath(link)) {
-        try {
-          els.saveLessonBtn.disabled = true;
-          els.saveLessonBtn.textContent = 'Importing...';
-          const imported = await api('POST', '/api/upload-path', { path: link });
-          payload.resource = imported.path;
-        } catch (err) {
-          toast('Local file import failed: ' + err.message);
-          els.saveLessonBtn.disabled = false;
-          els.saveLessonBtn.textContent = 'Save lesson';
-          return;
-        } finally {
-          els.saveLessonBtn.disabled = false;
-          els.saveLessonBtn.textContent = 'Save lesson';
-        }
-      } else {
-        payload.resource = link;
-      }
+      payload.resource = link;
     } else if (activeTab === 'note') {
       // Text notes and markdown both store their content in `notes`. The
       // standalone "Notes (optional)" field is hidden for these tabs and
@@ -1114,12 +1054,6 @@
       payload.resource = '';
       payload.type = 'markdown';
       payload.notes = md;
-    } else if (activeTab === 'upload') {
-      if (!state.lessonUploaded) {
-        toast('Please choose a file first');
-        return;
-      }
-      payload.resource = state.lessonUploaded.path;
     }
 
     try {
@@ -1247,33 +1181,12 @@
     setTimeout(() => a.remove(), 0);
   }
 
-  // ---------- File upload --------------------------------------------------
-  async function handleFileUpload(file) {
-    if (!file) return;
-    const form = new FormData();
-    form.append('file', file);
-    els.uploadedFileInfo.textContent = 'Uploading...';
-    try {
-      const res = await fetch('/api/upload', { method: 'POST', body: form });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: 'Upload failed' }));
-        throw new Error(err.error || 'Upload failed');
-      }
-      const data = await res.json();
-      state.lessonUploaded = data;
-      els.uploadedFileInfo.innerHTML = `Uploaded: <strong>${escapeHtml(data.name)}</strong> (${Math.round(data.size / 1024)} KB)`;
-    } catch (err) {
-      state.lessonUploaded = null;
-      els.uploadedFileInfo.innerHTML = `<span class="text-danger">${escapeHtml(err.message)}</span>`;
-    }
-  }
-
   // ---------- Preview ------------------------------------------------------
   // Entry point used by the "Open" button, the title click, and the inline
   // resource link on each lesson row. For types that embed cleanly in the
-  // modal (image / video / audio / pdf / youtube / text / markdown) we open
-  // the preview modal. For everything else — `website`, `article`, or any
-  // resource that is a plain external URL — we open the resource in a new
+  // modal (text / markdown) we open the preview modal inline. For
+  // everything else â€"`link``, `website`, `article`, or any resource that is
+  // a plain external URL â€" we open the resource in a new
   // browser tab instead. This sidesteps the X-Frame-Options /
   // Content-Security-Policy: frame-ancestors headers that many sites send
   // (e.g. w3schools, GitHub, Facebook) which forbid embedding and would
@@ -1281,7 +1194,7 @@
   function openLessonResource(lesson) {
     const type = lesson && lesson.type;
     const resource = (lesson && lesson.resource) || '';
-    const modalTypes = new Set(['image', 'video', 'audio', 'pdf', 'youtube', 'text', 'markdown']);
+    const modalTypes = new Set(['text', 'markdown']);
     if (type && modalTypes.has(type)) {
       openPreview(lesson);
       return;
@@ -1460,22 +1373,7 @@
       body.innerHTML = '';
     }
 
-    if (type === 'youtube') {
-      const embed = youtubeEmbed(resource);
-      if (embed) {
-        body.innerHTML = `<iframe class="preview-frame" src="${embed}" allowfullscreen allow="autoplay; encrypted-media"></iframe>`;
-      } else {
-        body.innerHTML = `<div class="p-4 text-white">Invalid YouTube URL.</div>`;
-      }
-    } else if (type === 'image') {
-      body.innerHTML = `<img class="preview-image" src="${escapeHtml(resource)}" alt="${escapeHtml(lesson.title)}" />`;
-    } else if (type === 'video') {
-      body.innerHTML = `<video class="preview-frame" controls src="${escapeHtml(resource)}"></video>`;
-    } else if (type === 'audio') {
-      body.innerHTML = `<div class="p-4 text-white text-center"><i class="bi bi-music-note-beamed display-4 d-block mb-3"></i><audio controls src="${escapeHtml(resource)}" class="w-100"></audio></div>`;
-    } else if (type === 'pdf') {
-      body.innerHTML = `<iframe class="preview-frame" src="${escapeHtml(resource)}" title="${escapeHtml(lesson.title)}"></iframe>`;
-    } else if (type === 'text') {
+    if (type === 'text') {
       const content = lesson.notes || resource || '(empty note)';
       body.innerHTML = `<pre class="preview-text">${escapeHtml(content)}</pre>`;
     } else if (type === 'markdown') {
@@ -1637,44 +1535,6 @@
     $$('#resourceTabs .nav-link').forEach((btn) => {
       btn.addEventListener('click', () => activateResourceTab(btn.dataset.tab));
     });
-
-    els.resourceFileInput.addEventListener('change', (e) => {
-      const f = e.target.files?.[0];
-      if (f) handleFileUpload(f);
-    });
-
-    // Drag-and-drop on the styled drop zone. Click + keyboard (Enter/Space) open
-    // the file picker. Drag events are prevented so the browser doesn't navigate
-    // to the file when the user misses the target.
-    if (els.dropZone) {
-      const openPicker = () => els.resourceFileInput.click();
-      els.dropZone.addEventListener('click', openPicker);
-      els.dropZone.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          openPicker();
-        }
-      });
-      ['dragenter', 'dragover'].forEach((evt) => {
-        els.dropZone.addEventListener(evt, (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          els.dropZone.classList.add('is-dragover');
-        });
-      });
-      ['dragleave', 'drop'].forEach((evt) => {
-        els.dropZone.addEventListener(evt, (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (evt === 'dragleave' && e.target !== els.dropZone) return;
-          els.dropZone.classList.remove('is-dragover');
-        });
-      });
-      els.dropZone.addEventListener('drop', (e) => {
-        const f = e.dataTransfer?.files?.[0];
-        if (f) handleFileUpload(f);
-      });
-    }
 
     // Pressing Enter in title field submits
     [els.courseTitleInput, els.lessonTitleInput].forEach((inp) => {
