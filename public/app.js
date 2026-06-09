@@ -10,6 +10,10 @@
     courseDraftLessons: [],
     // lesson modal transient state
     lessonEditingId: null,
+    // task modal transient state
+    taskEditingId: null,
+    // task runner modal transient state
+    taskRunnerTaskId: null,
   };
 
   // ---------- DOM refs -----------------------------------------------------
@@ -54,6 +58,8 @@
     deleteCourseBtn: $('#deleteCourseBtn'),
     exportCourseBtn: $('#exportCourseBtn'),
     addLessonBtn: $('#addLessonBtn'),
+    addTaskBtn: $('#addTaskBtn'),
+    tasksList: $('#tasksList'),
 
     courseModalEl: $('#courseModal'),
     courseModalTitle: $('#courseModalTitle'),
@@ -74,6 +80,23 @@
     resourceMarkdownInput: $('#resourceMarkdownInput'),
     lessonNotesInput: $('#lessonNotesInput'),
     saveLessonBtn: $('#saveLessonBtn'),
+
+    taskModalEl: $('#taskModal'),
+    taskModalTitle: $('#taskModalTitle'),
+    taskForm: $('#taskForm'),
+    taskTitleInput: $('#taskTitleInput'),
+    taskQuestionInput: $('#taskQuestionInput'),
+    taskInstructionInput: $('#taskInstructionInput'),
+    saveTaskBtn: $('#saveTaskBtn'),
+
+    taskRunnerModalEl: $('#taskRunnerModal'),
+    taskRunnerTitle: $('#taskRunnerTitle'),
+    taskRunnerQuestion: $('#taskRunnerQuestion'),
+    taskRunnerAnswer: $('#taskRunnerAnswer'),
+    taskRunnerSubmit: $('#taskRunnerSubmit'),
+    taskRunnerFeedback: $('#taskRunnerFeedback'),
+    taskRunnerSpinner: $('#taskRunnerSpinner'),
+    taskRunnerSubmissions: $('#taskRunnerSubmissions'),
 
     previewModalEl: $('#previewModal'),
     previewTitle: $('#previewTitle'),
@@ -110,6 +133,8 @@
   const bs = {
     courseModal: new bootstrap.Modal(els.courseModalEl),
     lessonModal: new bootstrap.Modal(els.lessonModalEl),
+    taskModal: els.taskModalEl ? new bootstrap.Modal(els.taskModalEl) : null,
+    taskRunnerModal: els.taskRunnerModalEl ? new bootstrap.Modal(els.taskRunnerModalEl) : null,
     previewModal: new bootstrap.Modal(els.previewModalEl),
     confirmModal: new bootstrap.Modal(els.confirmModalEl),
     importModal: els.importModalEl ? new bootstrap.Modal(els.importModalEl) : null,
@@ -636,6 +661,10 @@
       els.detailProgressTrack.classList.toggle('is-complete', total > 0 && pct === 100);
     }
 
+    // Tasks list (rendered regardless of whether lessons exist, so an
+    // empty course can still showcase tasks and vice versa).
+    renderTasksList(course);
+
     if (!course.lessons.length) {
       els.lessonsList.innerHTML = `
         <div class="empty">
@@ -1110,6 +1139,223 @@
     }
   }
 
+  // ---------- Task actions -------------------------------------------------
+  function renderTasksList(course) {
+    if (!els.tasksList) return;
+    const tasks = Array.isArray(course.tasks) ? course.tasks : [];
+    if (!tasks.length) {
+      els.tasksList.innerHTML = `
+        <div class="task-empty">
+          <i class="bi bi-question-circle display-6 d-block mb-2"></i>
+          No tasks yet. Click <strong>Add task</strong> to create a practice question.
+        </div>`;
+      return;
+    }
+    els.tasksList.innerHTML = tasks
+      .map((t) => {
+        const subCount = (t.submissions || []).length;
+        const meta = `${subCount} submission${subCount === 1 ? '' : 's'} · created ${formatDate(t.createdAt)}`;
+        return `
+          <div class="task-card" data-id="${t.id}">
+            <div class="task-card-body">
+              <p class="task-card-title">${escapeHtml(t.title)}</p>
+              <div class="task-card-meta">${escapeHtml(meta)}</div>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+              <button class="btn btn-sm btn-primary open-task" title="Open task">
+                <i class="bi bi-play-fill me-1"></i> Open
+              </button>
+              <button class="btn btn-sm btn-outline-secondary edit-task ocb-action-btn" title="Edit">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger delete-task ocb-action-btn" title="Delete">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>`;
+      })
+      .join('');
+
+    els.tasksList.querySelectorAll('.task-card').forEach((row) => {
+      const id = row.dataset.id;
+      const openBtn = row.querySelector('.open-task');
+      if (openBtn) openBtn.addEventListener('click', () => openTaskRunner(id));
+      const editBtn = row.querySelector('.edit-task');
+      if (editBtn) editBtn.addEventListener('click', () => openTaskModal(id));
+      const delBtn = row.querySelector('.delete-task');
+      if (delBtn) delBtn.addEventListener('click', () => deleteTask(id));
+    });
+  }
+
+  function resetTaskModal() {
+    if (els.taskTitleInput) els.taskTitleInput.value = '';
+    if (els.taskQuestionInput) els.taskQuestionInput.value = '';
+    if (els.taskInstructionInput) els.taskInstructionInput.value = '';
+    if (els.taskTitleInput) els.taskTitleInput.classList.remove('is-invalid');
+  }
+
+  function openTaskModal(taskId) {
+    if (!bs.taskModal) return;
+    resetTaskModal();
+    const course = state.courses.find((c) => c.id === state.activeCourseId);
+    if (!course) return;
+    state.taskEditingId = null;
+    els.taskModalTitle.textContent = 'Add task';
+    els.saveTaskBtn.textContent = 'Create task';
+
+    if (taskId) {
+      const task = (course.tasks || []).find((t) => t.id === taskId);
+      if (!task) return;
+      state.taskEditingId = taskId;
+      els.taskModalTitle.textContent = 'Edit task';
+      els.saveTaskBtn.textContent = 'Save task';
+      els.taskTitleInput.value = task.title || '';
+      els.taskQuestionInput.value = task.question || '';
+      els.taskInstructionInput.value = task.instruction || '';
+    }
+    bs.taskModal.show();
+    setTimeout(() => els.taskTitleInput.focus(), 200);
+  }
+
+  async function saveTaskFromModal() {
+    const title = els.taskTitleInput.value.trim();
+    if (!title) {
+      els.taskTitleInput.classList.add('is-invalid');
+      return;
+    }
+    els.taskTitleInput.classList.remove('is-invalid');
+    const payload = {
+      title,
+      question: els.taskQuestionInput.value,
+      instruction: els.taskInstructionInput.value,
+    };
+    try {
+      if (state.taskEditingId) {
+        await api('PUT', `/api/courses/${state.activeCourseId}/tasks/${state.taskEditingId}`, payload);
+        toast('Task updated');
+      } else {
+        await api('POST', `/api/courses/${state.activeCourseId}/tasks`, payload);
+        toast('Task added');
+      }
+      bs.taskModal.hide();
+      const refreshed = await api('GET', `/api/courses/${state.activeCourseId}`);
+      const idx = state.courses.findIndex((c) => c.id === state.activeCourseId);
+      if (idx >= 0) state.courses[idx] = refreshed;
+      renderCourseDetail(refreshed);
+    } catch (err) {
+      toast('Save failed: ' + err.message);
+    }
+  }
+
+  async function deleteTask(taskId) {
+    const ok = await confirmAction({
+      title: 'Delete task?',
+      message: 'This will remove the task and all of its submissions from the course.',
+      okText: 'Delete',
+    });
+    if (!ok) return;
+    try {
+      await api('DELETE', `/api/courses/${state.activeCourseId}/tasks/${taskId}`);
+      const refreshed = await api('GET', `/api/courses/${state.activeCourseId}`);
+      const idx = state.courses.findIndex((c) => c.id === state.activeCourseId);
+      if (idx >= 0) state.courses[idx] = refreshed;
+      renderCourseDetail(refreshed);
+      toast('Task deleted');
+    } catch (err) {
+      toast('Delete failed: ' + err.message);
+    }
+  }
+
+  function openTaskRunner(taskId) {
+    if (!bs.taskRunnerModal) return;
+    const course = state.courses.find((c) => c.id === state.activeCourseId);
+    if (!course) return;
+    const task = (course.tasks || []).find((t) => t.id === taskId);
+    if (!task) return;
+    state.taskRunnerTaskId = taskId;
+    els.taskRunnerTitle.textContent = task.title || 'Task';
+    els.taskRunnerQuestion.innerHTML = renderMarkdown(task.question || '');
+    els.taskRunnerAnswer.value = '';
+    els.taskRunnerAnswer.disabled = false;
+    els.taskRunnerSubmit.disabled = false;
+    if (els.taskRunnerSpinner) els.taskRunnerSpinner.classList.add('d-none');
+    const last = (task.submissions && task.submissions.length)
+      ? task.submissions[task.submissions.length - 1]
+      : null;
+    if (last && last.feedback) {
+      els.taskRunnerFeedback.innerHTML = renderMarkdown(last.feedback);
+    } else {
+      els.taskRunnerFeedback.innerHTML = '<span class="text-muted">Submit your answer to receive feedback.</span>';
+    }
+    renderTaskSubmissions(task);
+    bs.taskRunnerModal.show();
+    setTimeout(() => els.taskRunnerAnswer.focus(), 200);
+  }
+
+  function renderTaskSubmissions(task) {
+    if (!els.taskRunnerSubmissions) return;
+    const subs = Array.isArray(task.submissions) ? task.submissions : [];
+    if (!subs.length) {
+      els.taskRunnerSubmissions.innerHTML = '';
+      return;
+    }
+    const items = subs
+      .slice()
+      .reverse()
+      .map((s) => `
+        <details class="mb-2 border rounded p-2 bg-white">
+          <summary class="d-flex justify-content-between align-items-center" style="cursor:pointer; list-style:none;">
+            <span><i class="bi bi-chat-left-text me-1"></i> Submission from ${formatDate(s.createdAt)}</span>
+            <span class="text-muted small">${escapeHtml(s.answer.slice(0, 60))}${s.answer.length > 60 ? '…' : ''}</span>
+          </summary>
+          <div class="mt-2">
+            <div class="text-muted small mb-1"><strong>Your answer</strong></div>
+            <pre class="mb-2" style="white-space:pre-wrap; word-break:break-word; font-family:inherit;">${escapeHtml(s.answer)}</pre>
+            <div class="text-muted small mb-1"><strong>Feedback</strong></div>
+            <div class="markdown-body">${renderMarkdown(s.feedback || '')}</div>
+          </div>
+        </details>`)
+      .join('');
+    els.taskRunnerSubmissions.innerHTML = `
+      <div class="mt-3">
+        <h6 class="mb-2"><i class="bi bi-clock-history me-1"></i> Past submissions</h6>
+        ${items}
+      </div>`;
+  }
+
+  async function submitTask() {
+    const taskId = state.taskRunnerTaskId;
+    if (!taskId) return;
+    const answer = els.taskRunnerAnswer.value;
+    if (!answer.trim()) {
+      els.taskRunnerAnswer.classList.add('is-invalid');
+      toast('Please write an answer first');
+      return;
+    }
+    els.taskRunnerAnswer.classList.remove('is-invalid');
+    els.taskRunnerSubmit.disabled = true;
+    els.taskRunnerAnswer.disabled = true;
+    if (els.taskRunnerSpinner) els.taskRunnerSpinner.classList.remove('d-none');
+    els.taskRunnerFeedback.innerHTML = '<span class="text-muted">Asking the tutor…</span>';
+    try {
+      const result = await api('POST', `/api/courses/${state.activeCourseId}/tasks/${taskId}/submit`, { answer });
+      const feedback = (result && result.submission && result.submission.feedback) || '';
+      els.taskRunnerFeedback.innerHTML = renderMarkdown(feedback || '_No feedback returned._');
+      const refreshed = await api('GET', `/api/courses/${state.activeCourseId}`);
+      const idx = state.courses.findIndex((c) => c.id === state.activeCourseId);
+      if (idx >= 0) state.courses[idx] = refreshed;
+      const task = (refreshed.tasks || []).find((t) => t.id === taskId);
+      if (task) renderTaskSubmissions(task);
+    } catch (err) {
+      els.taskRunnerFeedback.innerHTML = `<span class="text-danger">${escapeHtml('Feedback failed: ' + err.message)}</span>`;
+      toast('Feedback failed: ' + err.message);
+    } finally {
+      els.taskRunnerSubmit.disabled = false;
+      els.taskRunnerAnswer.disabled = false;
+      if (els.taskRunnerSpinner) els.taskRunnerSpinner.classList.add('d-none');
+    }
+  }
+
   // Move a lesson one position up or down within the active course. The
   // server receives the new full order so the source of truth is `db.json`
   // — the page is re-rendered from the server's response to stay in sync.
@@ -1522,6 +1768,9 @@
     els.editCourseBtn.addEventListener('click', openCourseEditModal);
     els.deleteCourseBtn.addEventListener('click', deleteCourse);
     els.addLessonBtn.addEventListener('click', () => openLessonModal(null));
+    if (els.addTaskBtn) els.addTaskBtn.addEventListener('click', () => openTaskModal(null));
+    if (els.saveTaskBtn) els.saveTaskBtn.addEventListener('click', saveTaskFromModal);
+    if (els.taskRunnerSubmit) els.taskRunnerSubmit.addEventListener('click', submitTask);
 
     els.addLessonRowBtn.addEventListener('click', () => {
       state.courseDraftLessons.push({ title: '', resource: '', type: 'website', notes: '' });
@@ -1537,11 +1786,14 @@
     });
 
     // Pressing Enter in title field submits
-    [els.courseTitleInput, els.lessonTitleInput].forEach((inp) => {
+    [els.courseTitleInput, els.lessonTitleInput, els.taskTitleInput].forEach((inp) => {
+      if (!inp) return;
       inp.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          (inp === els.courseTitleInput ? els.saveCourseBtn : els.saveLessonBtn).click();
+          if (inp === els.courseTitleInput) els.saveCourseBtn.click();
+          else if (inp === els.lessonTitleInput) els.saveLessonBtn.click();
+          else if (inp === els.taskTitleInput && els.saveTaskBtn) els.saveTaskBtn.click();
         }
       });
     });
