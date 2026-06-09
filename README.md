@@ -1,11 +1,11 @@
 # Open Course Builder
 
-A simple CRUD app that collects every kind of learning resource for a course in one place: YouTube links, articles, website URLs, PDFs, audio, video, images, and plain text notes. Backed by a single `db.json` file and a tiny Node/Express server.
+A simple CRUD course builder that aggregates web links, text notes, and markdown notes into one place. Backed by a single `db.json` file and a tiny Node/Express server.
 
 ## Stack
 - **Frontend:** HTML, Bootstrap 5, vanilla JS (no build step).
-- **Backend:** Node + Express, `multer` for file uploads, `uuid` for IDs.
-- **Storage:** `db.json` (auto-created) + `uploads/` directory for uploaded files.
+- **Backend:** Node + Express, `uuid` for IDs.
+- **Storage:** `db.json` (auto-created).
 
 ## Run
 ```bash
@@ -24,7 +24,6 @@ open-course-builder/
 │   ├── index.html
 │   ├── app.js
 │   └── styles.css
-└── uploads/         # Uploaded files land here
 ```
 
 ## API
@@ -37,19 +36,20 @@ open-course-builder/
 - `PUT    /api/courses/:id/lessons/:lessonId` — update a lesson
 - `PATCH  /api/courses/:id/lessons/:lessonId/toggle` — toggle `isCompleted`
 - `DELETE /api/courses/:id/lessons/:lessonId` — delete a lesson
-- `POST   /api/upload` (multipart `file`) — returns `{ name, path, size, mimetype }`
+- `PUT    /api/courses/:id/lessons/:lessonId/note` — autosave the per-lesson markdown note
 
 ## Lesson shape
 ```json
 {
   "id": "uuid",
   "title": "Flexbox basics",
-  "type": "youtube | article | website | pdf | audio | video | image | text",
-  "resource": "https://... or /uploads/file.pdf or ''",
+  "type": "link | text | markdown",
+  "resource": "https://example.com/article",
   "notes": "free-form notes",
+  "lessonNote": "per-lesson markdown note (autosaved)",
   "isCompleted": false,
   "createdAt": "2026-01-01T00:00:00.000Z"
 }
 ```
 
-Resource type is auto-detected from the URL/extension. You can override it explicitly.
+`type` is one of `link` (any URL), `text` (plain-text note stored in `notes`), or `markdown` (GitHub-flavored markdown stored in `notes`). Legacy `type` values (e.g. `youtube`, `pdf`, `image`) are automatically normalized to `link` on read.
