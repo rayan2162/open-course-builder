@@ -3,7 +3,7 @@
   "title": "test",
   "description": "",
   "createdAt": "2026-06-09T18:57:51.455Z",
-  "updatedAt": "2026-06-09T19:20:03.852Z",
+  "updatedAt": "2026-06-10T04:10:45.172Z",
   "lessons": [
     {
       "id": "7df1f3cd-057e-4190-be33-3d9f031aeb75",
@@ -64,6 +64,29 @@
           "feedback": "## Result\nFAIL\n\n## Why\nThe query has several issues: it incorrectly references `o.order_id` instead of `o.id`, and it incorrectly references `c.customer_name` instead of `c.name`. Additionally, the query does not order the result by `order_id` ascending as required. The join condition is also incorrect, it should be `o.customer_id = c.id` instead of `o.customer_id = c.customer_id`.\n\n## Fix\n```sql\nSELECT o.id AS order_id, c.name AS customer_name, o.product, o.amount\nFROM orders o\nINNER JOIN customers c\nON o.customer_id = c.id\nORDER BY o.id ASC;\n```"
         }
       ]
+    },
+    {
+      "id": "9fdfdf4c-6af3-40a0-bd2b-280732ab4c8d",
+      "title": "python problem",
+      "question": "# Python Hello World\n\nWrite a **Python program** that prints the exact text:\n\n```text\nHello, World!\n```\n\n## Requirements\n\n1. Use the built-in `print()` function.\n2. Do **not** print anything else (no extra spaces, no extra newlines beyond the one `print` adds).\n3. Your code must be valid **Python 3**.\n\n### Examples\n\n| Input | Output           |\n|-------|------------------|\n| *(none)* | `Hello, World!` |",
+      "instruction": "You are a strict but friendly Python tutor. A learner has submitted a Python\nprogram. Your job is to validate it and give concise feedback.\n\nVALIDATION RULES\n1. The code must be syntactically valid Python 3.\n2. When executed, the program must output EXACTLY: Hello, World!\n   - No leading/trailing whitespace\n   - No extra lines\n   - No extra arguments to print() besides the string\n3. Acceptable implementations include:\n   - print(\"Hello, World!\")\n   - print('Hello, World!')\n   - print(f\"Hello, {name}!\" with name = \"World\")\n4. Reject any code that:\n   - Uses input()\n   - Has syntax errors\n   - Prints anything other than the exact target string\n   - Uses only one quote type wrong (e.g. print(\"Hello, World!')) \n\nFEEDBACK FORMAT\nReply in EXACTLY this Markdown format (no preamble, no closing remarks):\n\n## Result\nPASS or FAIL\n\n## Why\nOne short paragraph (2-4 sentences) explaining the decision in plain English.\nQuote the relevant line of code if helpful.\n\n## Fix (only if FAIL)\nA corrected version of the code in a fenced ```python block.\n\n## Tip (only if PASS)\nOne sentence of encouragement or a tiny next-step suggestion.",
+      "createdAt": "2026-06-10T04:07:19.914Z",
+      "submissions": [
+        {
+          "id": "5d466d08-3ba2-43c4-9684-e1810ce594f6",
+          "answer": "print(\"hello world\")",
+          "createdAt": "2026-06-10T04:07:43.631Z",
+          "feedback": "## Result\nFAIL\n\n## Why\nThe code `print(\"hello world\")` does not meet the requirements because it prints \"hello world\" instead of \"Hello, World!\". The first letter \"H\" should be uppercase and a comma is missing after \"Hello\".\n\n## Fix\n```python\nprint(\"Hello, World!\")\n```\n\n## Tip\nNone"
+        }
+      ]
+    },
+    {
+      "id": "62961cb1-4342-43aa-a333-f508d05bf85c",
+      "title": "hello world",
+      "question": "# Python Hello World\n\nWrite a **Python program** that prints the exact text:\n\n```text\nHello, World!\n```\n\n## Requirements\n\n1. Use the built-in `print()` function.\n2. Do **not** print anything else (no extra spaces, no extra newlines beyond the one `print` adds).\n3. Your code must be valid **Python 3**.\n\n### Examples\n\n| Input | Output           |\n|-------|------------------|\n| *(none)* | `Hello, World!` |",
+      "instruction": "You are a strict but friendly Python tutor. A learner has submitted a Python\nprogram. Your job is to validate it and give concise feedback.\n\nVALIDATION RULES\n1. The code must be syntactically valid Python 3.\n2. When executed, the program must output EXACTLY: Hello, World!\n   - No leading/trailing whitespace\n   - No extra lines\n   - No extra arguments to print() besides the string\n3. Acceptable implementations include:\n   - print(\"Hello, World!\")\n   - print('Hello, World!')\n   - print(f\"Hello, {name}!\" with name = \"World\")\n4. Reject any code that:\n   - Uses input()\n   - Has syntax errors\n   - Prints anything other than the exact target string\n   - Uses only one quote type wrong (e.g. print(\"Hello, World!')) \n\nFEEDBACK FORMAT\nReply in EXACTLY this Markdown format (no preamble, no closing remarks):\n\n## Result\nPASS or FAIL\n\n## Why\nOne short paragraph (2-4 sentences) explaining the decision in plain English.\nQuote the relevant line of code if helpful.\n\n## Fix (only if FAIL)\nA corrected version of the code in a fenced ```python block.\n\n## Tip (only if PASS)\nOne sentence of encouragement or a tiny next-step suggestion.",
+      "createdAt": "2026-06-10T04:10:45.172Z",
+      "submissions": []
     }
   ]
 }
