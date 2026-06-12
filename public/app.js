@@ -6,8 +6,6 @@
   const state = {
     courses: [],
     activeCourseId: null,
-    // course modal draft lessons (when creating a course in one go)
-    courseDraftLessons: [],
     // lesson modal transient state
     lessonEditingId: null,
     // task modal transient state
@@ -66,8 +64,6 @@
     courseForm: $('#courseForm'),
     courseTitleInput: $('#courseTitleInput'),
     courseDescInput: $('#courseDescInput'),
-    courseFormLessons: $('#courseFormLessons'),
-    addLessonRowBtn: $('#addLessonRowBtn'),
     saveCourseBtn: $('#saveCourseBtn'),
 
     // New course metadata fields
@@ -976,13 +972,11 @@
 
   // ---------- Course modal (create / edit) --------------------------------
   function openCourseCreateModal() {
-    state.courseDraftLessons = [];
     els.courseModalTitle.textContent = 'New course';
     els.saveCourseBtn.textContent = 'Create course';
     els.courseTitleInput.value = '';
     els.courseDescInput.value = '';
     resetCourseMetadata();
-    renderCourseFormLessons();
     bs.courseModal.show();
     setTimeout(() => els.courseTitleInput.focus(), 200);
   }
@@ -994,9 +988,7 @@
     els.saveCourseBtn.textContent = 'Save changes';
     els.courseTitleInput.value = course.title;
     els.courseDescInput.value = course.description || '';
-    state.courseDraftLessons = [];
     populateCourseMetadata(course);
-    renderCourseFormLessons();
     bs.courseModal.show();
   }
 
@@ -1087,53 +1079,6 @@
     }
   }
 
-  function renderCourseFormLessons() {
-    if (!state.courseDraftLessons.length) {
-      els.courseFormLessons.innerHTML = `<div class="text-muted small">No lessons added. You can add them now or later.</div>`;
-      return;
-    }
-    const draftType = (l) => (l.type || (l.notes ? 'markdown' : (l.resource ? 'website' : 'text')));
-    els.courseFormLessons.innerHTML = state.courseDraftLessons
-      .map((l, idx) => {
-        const t = draftType(l);
-        return `
-        <div class="resource-row" data-idx="${idx}">
-          <div class="d-flex gap-2 mb-2">
-            <input type="text" class="form-control form-control-sm lesson-draft-title" placeholder="Lesson title" value="${escapeHtml(l.title || '')}" />
-            <select class="form-select form-select-sm lesson-draft-type" style="max-width:140px">
-              <option value="website"${t === 'website' ? ' selected' : ''}>Link</option>
-              <option value="markdown"${t === 'markdown' ? ' selected' : ''}>Markdown</option>
-              <option value="text"${t === 'text' ? ' selected' : ''}>Text note</option>
-            </select>
-            <button type="button" class="btn btn-sm btn-outline-danger remove-draft"><i class="bi bi-x"></i></button>
-          </div>
-          <input type="text" class="form-control form-control-sm lesson-draft-link" placeholder="Resource link (optional)" value="${escapeHtml(l.resource || '')}" />
-          <textarea class="form-control form-control-sm lesson-draft-notes mt-2" rows="3" placeholder="Notes / Markdown content (optional)">${escapeHtml(l.notes || '')}</textarea>
-        </div>`;
-      })
-      .join('');
-
-    els.courseFormLessons.querySelectorAll('.resource-row').forEach((row) => {
-      const idx = Number(row.dataset.idx);
-      row.querySelector('.lesson-draft-title').addEventListener('input', (e) => {
-        state.courseDraftLessons[idx].title = e.target.value;
-      });
-      row.querySelector('.lesson-draft-link').addEventListener('input', (e) => {
-        state.courseDraftLessons[idx].resource = e.target.value;
-      });
-      row.querySelector('.lesson-draft-type').addEventListener('change', (e) => {
-        state.courseDraftLessons[idx].type = e.target.value;
-      });
-      row.querySelector('.lesson-draft-notes').addEventListener('input', (e) => {
-        state.courseDraftLessons[idx].notes = e.target.value;
-      });
-      row.querySelector('.remove-draft').addEventListener('click', () => {
-        state.courseDraftLessons.splice(idx, 1);
-        renderCourseFormLessons();
-      });
-    });
-  }
-
   async function saveCourseFromModal() {
     const title = els.courseTitleInput.value.trim();
     if (!title) {
@@ -1143,9 +1088,6 @@
     els.courseTitleInput.classList.remove('is-invalid');
 
     const description = els.courseDescInput.value.trim();
-    const lessons = state.courseDraftLessons
-      .map((l) => ({ ...l, title: (l.title || '').trim() }))
-      .filter((l) => l.title);
     const metadata = collectCourseMetadata();
 
     try {
@@ -1157,16 +1099,11 @@
           tags: metadata.tags,
           courseLanguage: metadata.courseLanguage,
         });
-        // Add the draft lessons if any
-        for (const l of lessons) {
-          await api('POST', `/api/courses/${state.activeCourseId}/lessons`, l);
-        }
         toast('Course updated');
       } else {
         const course = await api('POST', '/api/courses', {
           title,
           description,
-          lessons,
           authors: metadata.authors,
           tags: metadata.tags,
           courseLanguage: metadata.courseLanguage,
@@ -1969,11 +1906,6 @@
     if (els.addTaskBtn) els.addTaskBtn.addEventListener('click', () => openTaskModal(null));
     if (els.saveTaskBtn) els.saveTaskBtn.addEventListener('click', saveTaskFromModal);
     if (els.taskRunnerSubmit) els.taskRunnerSubmit.addEventListener('click', submitTask);
-
-    els.addLessonRowBtn.addEventListener('click', () => {
-      state.courseDraftLessons.push({ title: '', resource: '', type: 'website', notes: '' });
-      renderCourseFormLessons();
-    });
 
     // Course metadata wiring: add author row + chip inputs for tags/languages
     if (els.addAuthorRowBtn && els.courseFormAuthors) {
