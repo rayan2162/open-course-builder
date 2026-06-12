@@ -20,3 +20,7 @@ build/
 Thumbs.db
 
 .puku/
+verify.js
+*.log
+
+.puku
