@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -20,7 +20,7 @@
   </head>
   <body>
     <!-- Top nav -->
-    <nav class="navbar navbar-light bg-white border-bottom sticky-top">
+    <nav class="navbar bg-body-tertiary border-bottom sticky-top">
       <div class="container">
         <a class="navbar-brand fw-semibold d-flex align-items-center gap-2" href="#">
           <i class="bi bi-mortarboard-fill text-primary"></i>
@@ -52,6 +52,58 @@
             <i class="bi bi-cloud-arrow-up"></i>
             <span class="d-none d-md-inline ms-1">Sync progress</span>
           </button>
+          <div class="dropdown">
+            <button
+              class="btn btn-outline-secondary btn-sm dropdown-toggle ocb-action-btn"
+              type="button"
+              id="themeDropdownBtn"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              title="Change color theme"
+            >
+              <i id="themeDropdownIcon" class="bi bi-circle-half me-1"></i>
+              <span id="activeThemeLabel">Theme</span>
+            </button>
+            <ul
+              class="dropdown-menu dropdown-menu-end"
+              id="themeDropdownMenu"
+              aria-labelledby="themeDropdownBtn"
+            >
+              <li>
+                <button
+                  class="dropdown-item d-flex align-items-center gap-2"
+                  type="button"
+                  data-theme-choice="system"
+                >
+                  <i class="bi bi-circle-half"></i>
+                  <span class="flex-grow-1">System</span>
+                  <i class="bi bi-check2 d-none" data-theme-check="system"></i>
+                </button>
+              </li>
+              <li>
+                <button
+                  class="dropdown-item d-flex align-items-center gap-2"
+                  type="button"
+                  data-theme-choice="light"
+                >
+                  <i class="bi bi-sun-fill"></i>
+                  <span class="flex-grow-1">Light</span>
+                  <i class="bi bi-check2 d-none" data-theme-check="light"></i>
+                </button>
+              </li>
+              <li>
+                <button
+                  class="dropdown-item d-flex align-items-center gap-2"
+                  type="button"
+                  data-theme-choice="dark"
+                >
+                  <i class="bi bi-moon-stars-fill"></i>
+                  <span class="flex-grow-1">Dark</span>
+                  <i class="bi bi-check2 d-none" data-theme-check="dark"></i>
+                </button>
+              </li>
+            </ul>
+          </div>
           <div class="position-relative">
             <button
               class="btn btn-outline-warning btn-sm"
@@ -611,7 +663,7 @@
                 <div class="task-split-label">Question</div>
                 <div
                   id="taskRunnerQuestion"
-                  class="markdown-body task-pane task-pane-question border rounded p-3 bg-white"
+                  class="markdown-body task-pane task-pane-question border rounded p-3 bg-body"
                 ></div>
               </div>
               <div>
@@ -634,7 +686,7 @@
                 <strong>LLM feedback</strong>
                 <span id="taskRunnerSpinner" class="spinner-border spinner-border-sm text-primary d-none ms-2" role="status" aria-hidden="true"></span>
               </div>
-              <div id="taskRunnerFeedback" class="markdown-body task-pane task-feedback border rounded p-3 bg-light">
+              <div id="taskRunnerFeedback" class="markdown-body task-pane task-feedback border rounded p-3 bg-body-tertiary">
                 <span class="text-muted">Submit your answer to receive feedback.</span>
               </div>
             </div>
