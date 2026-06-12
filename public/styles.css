@@ -1,23 +1,577 @@
-:root {
+/* -----------------------------------------------------------------------
+   Theme tokens
+   -----------------------------------------------------------------------
+   Every surface and text color used by the app is bound to one of these
+   custom properties. The light values live on :root, the dark values live
+   on [data-bs-theme="dark"]. Anywhere we used to hardcode a hex, we now
+   reference one of these tokens so switching the data-bs-theme attribute
+   on <html> flips every mod/pane/section together with high contrast.
+------------------------------------------------------------------------ */
+:root,
+[data-bs-theme="light"] {
   --ocb-bg: #f7f8fa;
   --ocb-border: #e6e8ec;
   --ocb-muted: #6b7280;
   --ocb-radius: 12px;
+
+  --ocb-text: #1f2937;
+  --ocb-text-strong: #111827;
+  --ocb-text-soft: #4b5563;
+  --ocb-text-muted-2: #9ca3af;
+
+  --ocb-surface: #ffffff;
+  --ocb-surface-2: #f9fafb;
+  --ocb-surface-3: #f3f4f6;
+  --ocb-surface-soft: #fafbff;
+  --ocb-surface-muted: #eef0f4;
+
+  --ocb-input-bg: #ffffff;
+  --ocb-input-color: #1f2937;
+  --ocb-input-border: #d1d5db;
+  --ocb-input-placeholder: #9ca3af;
+
+  --ocb-code-bg: #0f172a;
+  --ocb-code-text: #e2e8f0;
+  --ocb-inline-code-bg: #f3f4f6;
+  --ocb-inline-code-text: #1f2937;
+
+  --ocb-link: #2563eb;
+  --ocb-heading-border: #e5e7eb;
+  --ocb-table-border: #e5e7eb;
+  --ocb-table-bg: #ffffff;
+  --ocb-table-text: #1f2937;
+  --ocb-blockquote-border: #cbd5e1;
+  --ocb-blockquote-text: #475569;
+
+  --ocb-hover-shadow: rgba(15, 23, 42, 0.06);
+  --ocb-ring-track: #eef0f4;
+  --ocb-ring-fill: #6366f1;
+
+  --ocb-success-bg: #ecfdf5;
+  --ocb-success-text: #047857;
+  --ocb-success-icon: #10b981;
+  --ocb-warning-bg: #fef3c7;
+  --ocb-warning-text: #92400e;
+  --ocb-warning-icon: #d97706;
+  --ocb-info-bg: #eef2ff;
+  --ocb-info-text: #4338ca;
+  --ocb-info-icon: #6366f1;
+
+  --ocb-chip-bg: #eef2ff;
+  --ocb-chip-text: #1f2937;
+  --ocb-stat-default-bg: #f3f4f6;
+  --ocb-stat-default-text: #4b5563;
+
+  --ocb-snippet-bg: #f3f4f6;
+  --ocb-snippet-text: #4b5563;
+  --ocb-snippet-border: #6366f1;
+
+  --ocb-cell-lvl-0: #ebedf0;
+  --ocb-cell-lvl-1: #c6e48b;
+  --ocb-cell-lvl-2: #7bc96f;
+  --ocb-cell-lvl-3: #239a3b;
+  --ocb-cell-lvl-4: #196127;
+  --ocb-cell-empty: #ffffff;
+  --ocb-cell-empty-day-text: #6b7280;
+  --ocb-cell-day-text: #1f2937;
+  --ocb-cell-day-text-light: #ffffff;
+
+  --ocb-task-feedback-bg: #f8f9fa;
+  --ocb-task-empty-bg: #fafbfc;
+  --ocb-task-empty-border: #dee2e6;
+  --ocb-task-feedback-text: #6c757d;
+  --ocb-task-card-bg: #ffffff;
+  --ocb-task-card-border: #e9ecef;
+  --ocb-task-card-meta: #6c757d;
+  --ocb-task-disabled-bg: #f1f3f5;
+  --ocb-task-pane-text: #6c757d;
+  --ocb-task-subsection-border: #e9ecef;
+  --ocb-task-divider: #e9ecef;
+
+  --ocb-modal-cancel: #ffffff;
+  --ocb-modal-cancel-text: #1f2937;
+  --ocb-modal-cancel-border: #d1d5db;
+
+  --ocb-danger-bg: rgba(220, 38, 38, 0.1);
+  --ocb-danger-text: #b91c1c;
+  --ocb-danger-icon: #dc2626;
+
+  --ocb-empty-state-gradient-end: #e0e7ff;
+
+  --ocb-progress-gradient: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #10b981 100%);
+  --ocb-progress-gradient-done: linear-gradient(90deg, #10b981, #34d399);
+  --ocb-stat-progress-gradient: linear-gradient(135deg, var(--ocb-info-icon), #8b5cf6);
+  --ocb-stat-progress-icon-text: #ffffff;
+  --ocb-shimmer-overlay: rgba(255, 255, 255, 0.45);
+  --ocb-shimmer-stop: rgba(255, 255, 255, 0);
+  --ocb-empty-state-glow: 0 8px 24px rgba(99, 102, 241, 0.25);
+  --ocb-action-glow: 0 4px 12px rgba(99, 102, 241, 0.25);
+
+  --ocb-shadow-soft: 0 6px 20px rgba(15, 23, 42, 0.06);
+  --ocb-shadow-tiny: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --ocb-shadow-hover: 0 4px 12px rgba(15, 23, 42, 0.05);
+  --ocb-focus-ring: rgba(13, 110, 253, 0.15);
+
+  --ocb-kbd: #f3f4f6;
+  --ocb-kbd-text: #1f2937;
+
+  --ocb-shadow-color: 0 0 0;
+}
+
+[data-bs-theme="dark"] {
+  --ocb-bg: #0f1115;
+  --ocb-border: #2a2f3a;
+  --ocb-muted: #9aa3b2;
+  --ocb-radius: 12px;
+
+  --ocb-text: #e5e7eb;
+  --ocb-text-strong: #f9fafb;
+  --ocb-text-soft: #cbd5e1;
+  --ocb-text-muted-2: #9aa3b2;
+
+  --ocb-surface: #161a22;
+  --ocb-surface-2: #1c2230;
+  --ocb-surface-3: #232a39;
+  --ocb-surface-soft: #1a2030;
+  --ocb-surface-muted: #232a39;
+
+  --ocb-input-bg: #1c2230;
+  --ocb-input-color: #f1f5f9;
+  --ocb-input-border: #3a4252;
+  --ocb-input-placeholder: #94a3b8;
+
+  --ocb-code-bg: #0b1020;
+  --ocb-code-text: #e2e8f0;
+  --ocb-inline-code-bg: #232a39;
+  --ocb-inline-code-text: #e2e8f0;
+
+  --ocb-link: #93c5fd;
+  --ocb-heading-border: #2a2f3a;
+  --ocb-table-border: #2a2f3a;
+  --ocb-table-bg: transparent;
+  --ocb-table-text: var(--ocb-text);
+  --ocb-blockquote-border: #3a4252;
+  --ocb-blockquote-text: #cbd5e1;
+
+  --ocb-hover-shadow: rgba(0, 0, 0, 0.4);
+  --ocb-ring-track: #2a2f3a;
+  --ocb-ring-fill: #818cf8;
+
+  --ocb-success-bg: rgba(16, 185, 129, 0.15);
+  --ocb-success-text: #6ee7b7;
+  --ocb-success-icon: #34d399;
+  --ocb-warning-bg: rgba(245, 158, 11, 0.15);
+  --ocb-warning-text: #fcd34d;
+  --ocb-warning-icon: #fbbf24;
+  --ocb-info-bg: rgba(99, 102, 241, 0.18);
+  --ocb-info-text: #c7d2fe;
+  --ocb-info-icon: #a5b4fc;
+
+  --ocb-chip-bg: #232a39;
+  --ocb-chip-text: #e5e7eb;
+  --ocb-stat-default-bg: #232a39;
+  --ocb-stat-default-text: #cbd5e1;
+
+  --ocb-snippet-bg: #1c2230;
+  --ocb-snippet-text: #cbd5e1;
+  --ocb-snippet-border: #818cf8;
+
+  --ocb-cell-lvl-0: #1c2230;
+  --ocb-cell-lvl-1: #14532d;
+  --ocb-cell-lvl-2: #166534;
+  --ocb-cell-lvl-3: #15803d;
+  --ocb-cell-lvl-4: #22c55e;
+  --ocb-cell-empty: #161a22;
+  --ocb-cell-empty-day-text: #6b7280;
+  --ocb-cell-day-text: #f1f5f9;
+  --ocb-cell-day-text-light: #0b1020;
+
+  --ocb-task-feedback-bg: #1a2030;
+  --ocb-task-empty-bg: #161a22;
+  --ocb-task-empty-border: #2a2f3a;
+  --ocb-task-feedback-text: #9aa3b2;
+  --ocb-task-card-bg: #1c2230;
+  --ocb-task-card-border: #2a2f3a;
+  --ocb-task-card-meta: #9aa3b2;
+  --ocb-task-disabled-bg: #232a39;
+  --ocb-task-pane-text: #9aa3b2;
+  --ocb-task-subsection-border: #2a2f3a;
+  --ocb-task-divider: #2a2f3a;
+
+  --ocb-modal-cancel: #1c2230;
+  --ocb-modal-cancel-text: #e5e7eb;
+  --ocb-modal-cancel-border: #3a4252;
+
+  --ocb-danger-bg: rgba(220, 38, 38, 0.18);
+  --ocb-danger-text: #fecaca;
+  --ocb-danger-icon: #f87171;
+
+  --ocb-empty-state-gradient-end: #232a39;
+
+  --ocb-progress-gradient: linear-gradient(90deg, #818cf8 0%, #a78bfa 50%, #34d399 100%);
+  --ocb-progress-gradient-done: linear-gradient(90deg, #10b981, #34d399);
+  --ocb-stat-progress-gradient: linear-gradient(135deg, var(--ocb-info-icon), #8b5cf6);
+  --ocb-stat-progress-icon-text: #ffffff;
+  --ocb-shimmer-overlay: rgba(255, 255, 255, 0.18);
+  --ocb-shimmer-stop: rgba(0, 0, 0, 0);
+  --ocb-empty-state-glow: 0 8px 24px rgba(99, 102, 241, 0.35);
+  --ocb-action-glow: 0 4px 12px rgba(99, 102, 241, 0.4);
+
+  --ocb-shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.45);
+  --ocb-shadow-tiny: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --ocb-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --ocb-focus-ring: rgba(99, 102, 241, 0.35);
+
+  --ocb-kbd: #232a39;
+  --ocb-kbd-text: #e5e7eb;
+
+  --ocb-shadow-color: 0 0 0;
 }
 
 body {
   background: var(--ocb-bg);
-  color: #1f2937;
+  color: var(--ocb-text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
 }
+
+/* Make every Bootstrap surface inherit our tokens so that we don't have
+   to override every utility class. */
+body,
+.navbar,
+.modal-content,
+.card,
+.dropdown-menu,
+.toast,
+.list-group-item,
+.alert,
+.form-control,
+.form-select,
+.input-group-text,
+.offcanvas,
+.popover {
+  color: var(--ocb-text);
+}
+
+.text-muted {
+  color: var(--ocb-muted) !important;
+}
+
+.text-muted-2 {
+  color: var(--ocb-text-muted-2) !important;
+}
+
+/* Bootstrap body / surface / border / link colors should follow our
+   tokens so the navbar, modals, forms, and toasts all flip together. */
+[data-bs-theme="light"],
+[data-bs-theme="dark"] {
+  --bs-body-color: var(--ocb-text);
+  --bs-body-bg: var(--ocb-bg);
+  --bs-border-color: var(--ocb-border);
+  --bs-secondary-color: var(--ocb-muted);
+  --bs-secondary-bg: var(--ocb-surface-2);
+  --bs-tertiary-color: var(--ocb-text-soft);
+  --bs-tertiary-bg: var(--ocb-surface-3);
+  --bs-emphasis-color: var(--ocb-text-strong);
+  --bs-link-color: var(--ocb-link);
+  --bs-link-hover-color: var(--ocb-link);
+}
+
+[data-bs-theme="dark"] .navbar.bg-body-tertiary {
+  background: var(--ocb-surface) !important;
+  border-bottom-color: var(--ocb-border) !important;
+}
+
+[data-bs-theme="dark"] .navbar-brand,
+[data-bs-theme="dark"] .navbar-brand span,
+[data-bs-theme="dark"] .navbar .bi {
+  color: var(--ocb-text);
+}
+
+[data-bs-theme="dark"] .navbar .btn-outline-primary,
+[data-bs-theme="dark"] .navbar .btn-outline-secondary,
+[data-bs-theme="dark"] .navbar .btn-outline-warning,
+[data-bs-theme="dark"] .navbar .btn-outline-danger,
+[data-bs-theme="dark"] .navbar .btn-primary {
+  color: var(--ocb-text);
+}
+
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select,
+[data-bs-theme="dark"] textarea.form-control,
+[data-bs-theme="dark"] .input-group-text {
+  background-color: var(--ocb-input-bg);
+  color: var(--ocb-input-color);
+  border-color: var(--ocb-input-border);
+}
+
+[data-bs-theme="dark"] .form-control::placeholder,
+[data-bs-theme="dark"] .form-select::placeholder,
+[data-bs-theme="dark"] textarea.form-control::placeholder {
+  color: var(--ocb-input-placeholder);
+}
+
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus,
+[data-bs-theme="dark"] textarea.form-control:focus {
+  background-color: var(--ocb-input-bg);
+  color: var(--ocb-input-color);
+  border-color: var(--ocb-info-icon);
+  box-shadow: 0 0 0 0.2rem var(--ocb-focus-ring);
+}
+
+[data-bs-theme="dark"] .modal-content {
+  background: var(--ocb-surface);
+  color: var(--ocb-text);
+  border: 1px solid var(--ocb-border);
+}
+
+[data-bs-theme="dark"] .modal-header,
+[data-bs-theme="dark"] .modal-footer {
+  border-color: var(--ocb-border);
+}
+
+[data-bs-theme="dark"] .modal-title {
+  color: var(--ocb-text-strong);
+}
+
+[data-bs-theme="dark"] .dropdown-menu {
+  background: var(--ocb-surface);
+  color: var(--ocb-text);
+  border: 1px solid var(--ocb-border);
+}
+
+[data-bs-theme="dark"] .dropdown-item {
+  color: var(--ocb-text);
+}
+
+[data-bs-theme="dark"] .dropdown-item:hover,
+[data-bs-theme="dark"] .dropdown-item:focus,
+[data-bs-theme="dark"] .dropdown-item.active {
+  background: var(--ocb-surface-2);
+  color: var(--ocb-text-strong);
+}
+
+[data-bs-theme="dark"] .btn-light,
+[data-bs-theme="dark"] .btn-outline-light {
+  background: var(--ocb-modal-cancel);
+  color: var(--ocb-modal-cancel-text);
+  border-color: var(--ocb-modal-cancel-border);
+}
+
+[data-bs-theme="dark"] .btn-light:hover,
+[data-bs-theme="dark"] .btn-outline-light:hover {
+  background: var(--ocb-surface-3);
+  color: var(--ocb-text-strong);
+  border-color: var(--ocb-modal-cancel-border);
+}
+
+[data-bs-theme="dark"] .alert {
+  color: var(--ocb-text);
+  border-color: var(--ocb-border);
+}
+
+.alert-danger {
+  background-color: var(--ocb-danger-bg);
+  color: var(--ocb-danger-text);
+  border-color: var(--ocb-danger-icon);
+}
+
+[data-bs-theme="dark"] .alert-danger {
+  background-color: var(--ocb-danger-bg);
+  color: var(--ocb-danger-text);
+  border-color: var(--ocb-danger-icon);
+}
+
+[data-bs-theme="dark"] .toast.text-bg-dark {
+  background: var(--ocb-surface) !important;
+  color: var(--ocb-text) !important;
+  border: 1px solid var(--ocb-border) !important;
+}
+
+[data-bs-theme="dark"] .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* ---------------------------------------------------------------------------
+   Markdown theming (.markdown-body + .preview-markdown)
+   ---------------------------------------------------------------------------
+   github-markdown-css ships with hardcoded light-mode colors for nearly every
+   element (pre/code/table/blockquote/hr/headings/links/kbd/etc). Without an
+   override, those leak through in both themes and produce white-on-white
+   code blocks in dark mode and unreadable contrast in light mode. We force
+   every common markdown element to use the active theme tokens. Selectors
+   include the container class so we outrank github-markdown-css without
+   needing !important on every rule.
+   --------------------------------------------------------------------------- */
+.markdown-body,
+.preview-markdown {
+  background-color: transparent;
+  color: var(--ocb-text);
+}
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6,
+.preview-markdown h1,
+.preview-markdown h2,
+.preview-markdown h3,
+.preview-markdown h4,
+.preview-markdown h5,
+.preview-markdown h6 {
+  color: var(--ocb-text-strong);
+  border-bottom-color: var(--ocb-heading-border);
+}
+.markdown-body p,
+.markdown-body li,
+.markdown-body dd,
+.markdown-body dt,
+.markdown-body summary,
+.preview-markdown p,
+.preview-markdown li,
+.preview-markdown dd,
+.preview-markdown dt,
+.preview-markdown summary {
+  color: var(--ocb-text);
+}
+.markdown-body a,
+.preview-markdown a {
+  color: var(--ocb-link);
+}
+.markdown-body hr,
+.preview-markdown hr {
+  border-top-color: var(--ocb-table-border);
+  background-color: transparent;
+}
+
+/* Block code (``` and 4-space-indent). github-markdown-css forces a white
+   background with dark text in light mode and a dark background in its
+   "dark" stylesheet - but we are using only the light stylesheet, so the
+   dark theme falls back to white-on-white. Force both themes here. */
+.markdown-body pre,
+.preview-markdown pre {
+  background-color: var(--ocb-code-bg) !important;
+  color: var(--ocb-code-text) !important;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  overflow: auto;
+}
+.markdown-body pre code,
+.preview-markdown pre code {
+  background-color: transparent !important;
+  color: var(--ocb-code-text) !important;
+  padding: 0;
+  font-size: 0.875em;
+  white-space: pre;
+}
+
+/* Inline code (single backticks). */
+.markdown-body :not(pre) > code,
+.preview-markdown :not(pre) > code {
+  background-color: var(--ocb-inline-code-bg) !important;
+  color: var(--ocb-inline-code-text) !important;
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+/* kbd / samp / mark inside markdown. */
+.markdown-body kbd,
+.markdown-body samp,
+.preview-markdown kbd,
+.preview-markdown samp {
+  background-color: var(--ocb-inline-code-bg);
+  color: var(--ocb-inline-code-text);
+}
+
+/* Blockquotes. */
+.markdown-body blockquote,
+.preview-markdown blockquote {
+  color: var(--ocb-blockquote-text);
+  border-left-color: var(--ocb-blockquote-border);
+  background-color: transparent;
+}
+
+/* Tables (rows, headers, cells). github-markdown-css hardcodes white on
+   tr/th/td which leaks in dark mode as white-on-white. */
+.markdown-body table,
+.preview-markdown table {
+  background-color: var(--ocb-table-bg);
+  color: var(--ocb-table-text);
+  border-collapse: collapse;
+}
+.markdown-body table tr,
+.markdown-body table th,
+.markdown-body table td,
+.preview-markdown table tr,
+.preview-markdown table th,
+.preview-markdown table td {
+  background-color: var(--ocb-table-bg);
+  color: var(--ocb-table-text);
+  border-color: var(--ocb-table-border);
+}
+.markdown-body table tr:nth-child(2n),
+.preview-markdown table tr:nth-child(2n) {
+  background-color: var(--ocb-table-bg);
+  color: var(--ocb-table-text);
+}
+.markdown-body table img,
+.preview-markdown table img {
+  background-color: transparent;
+}
+
+/* Images / media. github-markdown-css uses a transparent background. */
+.markdown-body img,
+.preview-markdown img {
+  background-color: transparent;
+}
+
+/* Past-submissions <details> cards in the task runner. They live inside a
+   .markdown-body parent and would otherwise inherit github-markdown-css's
+   white background, giving white-on-white in dark mode. */
+.task-submission {
+  background-color: var(--ocb-surface);
+  color: var(--ocb-text);
+}
+.task-submission > summary,
+.task-submission pre,
+.task-submission .markdown-body {
+  background-color: transparent;
+  color: var(--ocb-text);
+}
+.task-submission > div > pre {
+  background-color: var(--ocb-code-bg) !important;
+  color: var(--ocb-code-text) !important;
+  border-radius: 6px;
+  padding: 0.6rem 0.85rem;
+  margin: 0;
+}
+.task-submission .markdown-body pre,
+.task-submission .markdown-body pre code {
+  background-color: var(--ocb-code-bg) !important;
+  color: var(--ocb-code-text) !important;
+}
+
+[data-bs-theme="dark"] .form-label,
+[data-bs-theme="dark"] .form-text,
+[data-bs-theme="dark"] label {
+  color: var(--ocb-text);
+}
+
+/* The .markdown-body block (used by github-markdown-css to render lesson
+   previews + lesson notes) is themed via the global token overrides above
+   for body, code, kbd, pre, and the table/blockquote/link rules below. No
+   duplicate rules needed here. */
 
 .navbar {
   backdrop-filter: saturate(180%) blur(8px);
 }
 
 .course-card {
-  background: #fff;
+  background: var(--ocb-surface);
+  color: var(--ocb-text);
   border: 1px solid var(--ocb-border);
   border-radius: var(--ocb-radius);
   padding: 1.1rem 1.25rem;
@@ -30,14 +584,15 @@ body {
 }
 
 .course-card:hover {
-  border-color: #c7d2fe;
-  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+  border-color: var(--ocb-info-icon);
+  box-shadow: var(--ocb-shadow-soft);
   transform: translateY(-1px);
 }
 
 .course-card h5 {
   margin: 0;
   font-weight: 600;
+  color: var(--ocb-text-strong);
 }
 
 .course-card .meta {
@@ -65,9 +620,9 @@ body {
 
 .course-card-delete-btn:hover,
 .course-card-delete-btn:focus-visible {
-  background: #fef2f2;
-  border-color: #fecaca;
-  color: #b91c1c;
+  background: var(--ocb-warning-bg);
+  border-color: var(--ocb-warning-icon);
+  color: var(--ocb-warning-text);
   outline: none;
 }
 
@@ -100,7 +655,7 @@ body {
 }
 
 .course-card-desc.is-muted {
-  color: #9ca3af;
+  color: var(--ocb-text-muted-2);
   font-style: italic;
 }
 
@@ -127,14 +682,14 @@ body {
 
 .progress-ring-track {
   fill: none;
-  stroke: #eef0f4;
+  stroke: var(--ocb-ring-track);
   stroke-width: 4;
 }
 
 .progress-ring-fill {
   fill: none;
   stroke: url(#none);
-  stroke: #6366f1;
+  stroke: var(--ocb-ring-fill);
   stroke-width: 4;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.8s cubic-bezier(0.22, 1, 0.36, 1),
@@ -142,7 +697,7 @@ body {
 }
 
 .progress-ring.is-complete .progress-ring-fill {
-  stroke: #10b981;
+  stroke: var(--ocb-success-icon);
 }
 
 .progress-ring-label {
@@ -153,7 +708,7 @@ body {
   justify-content: center;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--ocb-text);
   letter-spacing: -0.02em;
 }
 
@@ -167,11 +722,11 @@ body {
 }
 
 .progress-ring.is-complete .progress-ring-label {
-  color: #047857;
+  color: var(--ocb-success-text);
 }
 
 .progress-ring.is-complete .progress-ring-label i {
-  color: #10b981;
+  color: var(--ocb-success-icon);
 }
 
 .course-card-stats {
@@ -190,8 +745,8 @@ body {
   font-weight: 600;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
-  background: #f3f4f6;
-  color: #4b5563;
+  background: var(--ocb-stat-default-bg);
+  color: var(--ocb-stat-default-text);
   white-space: nowrap;
 }
 
@@ -201,30 +756,30 @@ body {
 }
 
 .stat-chip.stat-done {
-  background: #ecfdf5;
-  color: #047857;
+  background: var(--ocb-success-bg);
+  color: var(--ocb-success-text);
 }
 
 .stat-chip.stat-done i {
-  color: #10b981;
+  color: var(--ocb-success-icon);
 }
 
 .stat-chip.stat-remaining {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--ocb-warning-bg);
+  color: var(--ocb-warning-text);
 }
 
 .stat-chip.stat-remaining i {
-  color: #d97706;
+  color: var(--ocb-warning-icon);
 }
 
 .stat-chip.stat-total {
-  background: #eef2ff;
-  color: #4338ca;
+  background: var(--ocb-info-bg);
+  color: var(--ocb-info-text);
 }
 
 .stat-chip.stat-total i {
-  color: #6366f1;
+  color: var(--ocb-info-icon);
 }
 
 /* ---------- Course detail: stats grid + gradient bar ---------- */
@@ -246,7 +801,8 @@ body {
   align-items: center;
   gap: 0.65rem;
   padding: 0.7rem 0.85rem;
-  background: #fff;
+  background: var(--ocb-surface);
+  color: var(--ocb-text);
   border: 1px solid var(--ocb-border);
   border-radius: var(--ocb-radius);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -254,7 +810,7 @@ body {
 
 .detail-stat:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--ocb-shadow-hover);
 }
 
 .detail-stat-icon {
@@ -269,23 +825,23 @@ body {
 }
 
 .detail-stat-total .detail-stat-icon {
-  background: #eef2ff;
-  color: #6366f1;
+  background: var(--ocb-info-bg);
+  color: var(--ocb-info-icon);
 }
 
 .detail-stat-done .detail-stat-icon {
-  background: #ecfdf5;
-  color: #10b981;
+  background: var(--ocb-success-bg);
+  color: var(--ocb-success-icon);
 }
 
 .detail-stat-remaining .detail-stat-icon {
-  background: #fef3c7;
-  color: #d97706;
+  background: var(--ocb-warning-bg);
+  color: var(--ocb-warning-icon);
 }
 
 .detail-stat-progress .detail-stat-icon {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: #fff;
+  background: var(--ocb-stat-progress-gradient);
+  color: var(--ocb-stat-progress-icon-text);
 }
 
 .detail-stat-body {
@@ -295,7 +851,7 @@ body {
 .detail-stat-value {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--ocb-text-strong);
   line-height: 1.1;
   letter-spacing: -0.01em;
 }
@@ -312,16 +868,16 @@ body {
 .detail-progress {
   position: relative;
   height: 8px;
-  background: #eef0f4;
+  background: var(--ocb-ring-track);
   border-radius: 999px;
   overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--ocb-shadow-tiny);
 }
 
 .detail-progress-fill {
   height: 100%;
   width: 0;
-  background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #10b981 100%);
+  background: var(--ocb-progress-gradient);
   background-size: 200% 100%;
   border-radius: 999px;
   transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1),
@@ -336,15 +892,15 @@ body {
   inset: 0;
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.45) 50%,
-    rgba(255, 255, 255, 0) 100%
+    var(--ocb-shimmer-stop) 0%,
+    var(--ocb-shimmer-overlay) 50%,
+    var(--ocb-shimmer-stop) 100%
   );
   animation: ocb-shimmer 2.4s linear infinite;
 }
 
 .detail-progress.is-complete .detail-progress-fill {
-  background: linear-gradient(90deg, #10b981, #34d399);
+  background: var(--ocb-progress-gradient-done);
 }
 
 @keyframes ocb-shimmer {
@@ -367,9 +923,9 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 2.4rem;
-  color: #6366f1;
-  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
+  color: var(--ocb-info-icon);
+  background: linear-gradient(135deg, var(--ocb-info-bg) 0%, var(--ocb-empty-state-gradient-end) 100%);
+  box-shadow: var(--ocb-empty-state-glow);
 }
 
 .type-pill {
@@ -381,23 +937,24 @@ body {
   letter-spacing: 0.04em;
   padding: 0.18rem 0.55rem;
   border-radius: 999px;
-  background: #eef2ff;
-  color: #4338ca;
+  background: var(--ocb-info-bg);
+  color: var(--ocb-info-text);
   font-weight: 600;
 }
 
-.type-pill.youtube { background: #fee2e2; color: #b91c1c; }
-.type-pill.article { background: #fef3c7; color: #92400e; }
-.type-pill.website { background: #dbeafe; color: #1d4ed8; }
-.type-pill.pdf     { background: #ffe4e6; color: #be123c; }
-.type-pill.audio   { background: #ede9fe; color: #6d28d9; }
-.type-pill.video   { background: #e0f2fe; color: #0369a1; }
-.type-pill.image   { background: #dcfce7; color: #166534; }
-.type-pill.text    { background: #f3f4f6; color: #374151; }
-.type-pill.markdown { background: #e0e7ff; color: #3730a3; }
+.type-pill.youtube { background: var(--ocb-warning-bg); color: var(--ocb-warning-text); }
+.type-pill.article { background: var(--ocb-warning-bg); color: var(--ocb-warning-text); }
+.type-pill.website { background: var(--ocb-info-bg); color: var(--ocb-info-text); }
+.type-pill.pdf     { background: var(--ocb-warning-bg); color: var(--ocb-warning-text); }
+.type-pill.audio   { background: var(--ocb-info-bg); color: var(--ocb-info-text); }
+.type-pill.video   { background: var(--ocb-info-bg); color: var(--ocb-info-text); }
+.type-pill.image   { background: var(--ocb-success-bg); color: var(--ocb-success-text); }
+.type-pill.text    { background: var(--ocb-surface-3); color: var(--ocb-text-soft); }
+.type-pill.markdown { background: var(--ocb-info-bg); color: var(--ocb-info-text); }
 
 .lesson-item {
-  background: #fff;
+  background: var(--ocb-surface);
+  color: var(--ocb-text);
   border: 1px solid var(--ocb-border);
   border-radius: var(--ocb-radius);
   padding: 0.9rem 1.1rem;
@@ -416,6 +973,7 @@ body {
   font-size: 1rem;
   margin: 0 0 0.15rem 0;
   word-break: break-word;
+  color: var(--ocb-text-strong);
 }
 
 .lesson-meta {
@@ -466,10 +1024,10 @@ body {
 .lesson-snippet {
   margin: 0.4rem 0 0;
   padding: 0.5rem 0.7rem;
-  background: #f3f4f6;
-  border-left: 3px solid #6366f1;
+  background: var(--ocb-snippet-bg);
+  border-left: 3px solid var(--ocb-snippet-border);
   border-radius: 4px;
-  color: #4b5563;
+  color: var(--ocb-snippet-text);
   font-size: 0.85rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   line-height: 1.4;
@@ -487,7 +1045,7 @@ body {
   border-radius: 10px;
   padding: 0.75rem;
   margin-bottom: 0.6rem;
-  background: #fafbff;
+  background: var(--ocb-surface-soft);
 }
 
 .preview-frame {
@@ -504,14 +1062,14 @@ body {
   max-height: 75vh;
   display: block;
   margin: auto;
-  background: #fff;
+  background: var(--ocb-surface);
   align-self: center;
   justify-self: center;
 }
 
 .preview-text {
-  background: #fff;
-  color: #1f2937;
+  background: var(--ocb-surface);
+  color: var(--ocb-text);
   padding: 1.25rem 1.5rem;
   white-space: pre-wrap;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -524,8 +1082,8 @@ body {
 }
 
 .preview-markdown {
-  background: #fff;
-  color: #1f2937;
+  background: var(--ocb-surface);
+  color: var(--ocb-text);
   padding: 1.25rem 1.5rem;
   flex: 1 1 auto;
   min-height: 0;
@@ -541,38 +1099,40 @@ body {
   margin-top: 1.2em;
   margin-bottom: 0.5em;
   font-weight: 600;
+  color: var(--ocb-text-strong);
 }
-.preview-markdown h1 { font-size: 1.6rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.3em; }
-.preview-markdown h2 { font-size: 1.35rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.25em; }
+.preview-markdown h1 { font-size: 1.6rem; border-bottom: 1px solid var(--ocb-heading-border); padding-bottom: 0.3em; }
+.preview-markdown h2 { font-size: 1.35rem; border-bottom: 1px solid var(--ocb-heading-border); padding-bottom: 0.25em; }
 .preview-markdown h3 { font-size: 1.15rem; }
 .preview-markdown p   { margin: 0.6em 0; }
 .preview-markdown ul,
 .preview-markdown ol  { margin: 0.6em 0; padding-left: 1.5em; }
 .preview-markdown code {
-  background: #f3f4f6;
+  background: var(--ocb-inline-code-bg);
+  color: var(--ocb-inline-code-text);
   padding: 0.15em 0.35em;
   border-radius: 4px;
   font-size: 0.9em;
 }
 .preview-markdown pre {
-  background: #0f172a;
-  color: #e2e8f0;
+  background: var(--ocb-code-bg);
+  color: var(--ocb-code-text);
   padding: 0.9em 1em;
   border-radius: 6px;
   overflow: auto;
 }
 .preview-markdown pre code { background: transparent; color: inherit; padding: 0; }
 .preview-markdown blockquote {
-  border-left: 3px solid #cbd5e1;
+  border-left: 3px solid var(--ocb-blockquote-border);
   margin: 0.6em 0;
   padding: 0.2em 0 0.2em 1em;
-  color: #475569;
+  color: var(--ocb-blockquote-text);
 }
 .preview-markdown img { max-width: 100%; height: auto; border-radius: 4px; }
-.preview-markdown a   { color: #2563eb; }
+.preview-markdown a   { color: var(--ocb-link); }
 .preview-markdown table { border-collapse: collapse; margin: 0.6em 0; }
 .preview-markdown th,
-.preview-markdown td  { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; }
+.preview-markdown td  { border: 1px solid var(--ocb-table-border); padding: 0.4em 0.7em; }
 
 /* Resource preview modal: ~80% width, 65% height of the viewport */
 #previewModal .modal-dialog {
@@ -614,8 +1174,9 @@ body {
   min-width: 260px;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
-  border-left: 1px solid var(--ocb-border, #e5e7eb);
+  background: var(--ocb-surface);
+  color: var(--ocb-text);
+  border-left: 1px solid var(--ocb-border);
   min-height: 0;
 }
 
@@ -625,16 +1186,16 @@ body {
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.6rem 0.85rem;
-  border-bottom: 1px solid var(--ocb-border, #e5e7eb);
-  background: #f9fafb;
+  border-bottom: 1px solid var(--ocb-border);
+  background: var(--ocb-surface-2);
   flex: 0 0 auto;
 }
 .preview-note-head-text { display: flex; align-items: center; font-size: 0.9rem; }
 .preview-note-toggle .btn { padding: 0.15rem 0.5rem; font-size: 0.8rem; }
 .preview-note-toggle .btn.active {
-  background-color: #1f2937;
-  color: #fff;
-  border-color: #1f2937;
+  background-color: var(--ocb-text-strong);
+  color: var(--ocb-surface);
+  border-color: var(--ocb-text-strong);
 }
 
 .preview-note-edit,
@@ -660,33 +1221,34 @@ body {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.9rem;
   line-height: 1.5;
-  color: #1f2937;
-  background: #ffffff;
+  color: var(--ocb-text);
+  background: var(--ocb-surface);
   outline: none;
   box-shadow: none;
 }
 .preview-note-input:focus {
   box-shadow: none;
   border: 0;
-  outline: 1px solid #c7d2fe;
+  outline: 1px solid var(--ocb-info-icon);
 }
 
 .preview-note-status {
   flex: 0 0 auto;
   padding: 0.35rem 0.85rem;
-  border-top: 1px solid var(--ocb-border, #e5e7eb);
-  background: #fafafa;
+  border-top: 1px solid var(--ocb-border);
+  background: var(--ocb-surface-2);
+  color: var(--ocb-muted);
   display: flex;
   align-items: center;
   gap: 0.35rem;
 }
-.preview-note-status.is-saving { color: #b45309 !important; }
-.preview-note-status.is-error  { color: #b91c1c !important; }
-.preview-note-status.is-saved  { color: #15803d !important; }
+.preview-note-status.is-saving { color: var(--ocb-warning-text) !important; }
+.preview-note-status.is-error  { color: var(--ocb-warning-text) !important; }
+.preview-note-status.is-saved  { color: var(--ocb-success-text) !important; }
 
 .preview-note-rendered {
-  background: #ffffff;
-  color: #1f2937;
+  background: var(--ocb-surface);
+  color: var(--ocb-text);
   padding: 0.9rem 1.1rem;
   flex: 1 1 auto;
   min-height: 0;
@@ -704,6 +1266,7 @@ body {
   justify-content: center;
   padding: 1.5rem;
   font-size: 0.9rem;
+  color: var(--ocb-muted);
 }
 
 /* No-content case (e.g. website links open in a new tab): hide content, sidebar takes full width */
@@ -738,17 +1301,15 @@ body {
   color: var(--ocb-muted);
 }
 
-.text-muted-2 { color: #9ca3af; }
-
 .nav-pills.nav-sm .nav-link {
   padding: 0.25rem 0.75rem;
   font-size: 0.85rem;
   border-radius: 999px;
-  color: #4b5563;
+  color: var(--ocb-text-soft);
 }
 .nav-pills.nav-sm .nav-link.active {
-  background: #eef2ff;
-  color: #3730a3;
+  background: var(--ocb-info-bg);
+  color: var(--ocb-info-text);
 }
 
 /* ---------- View-mode toggle (hide create/edit/delete) ------------------ */
@@ -757,7 +1318,7 @@ body {
     border-color 0.15s ease, box-shadow 0.15s ease;
 }
 #toggleActionsBtn[aria-pressed="true"] {
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  box-shadow: var(--ocb-action-glow);
 }
 
 /* When view mode is on, every button flagged as an "action" (create / edit /
@@ -804,7 +1365,7 @@ body.hidden-actions .course-card-head-actions {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #6c757d;
+  color: var(--ocb-task-pane-text);
   margin-bottom: 0.35rem;
 }
 .task-pane {
@@ -812,9 +1373,11 @@ body.hidden-actions .course-card-head-actions {
   min-height: 280px;
   max-height: 60vh;
   overflow: auto;
+  color: var(--ocb-text);
 }
 .task-pane-question {
-  background-color: #fff;
+  background-color: var(--ocb-surface);
+  color: var(--ocb-text);
   white-space: normal;
 }
 .task-pane-answer {
@@ -823,47 +1386,51 @@ body.hidden-actions .course-card-head-actions {
   min-height: 280px;
 }
 .task-feedback-wrap {
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid var(--ocb-task-divider);
   padding-top: 0.75rem;
 }
 .task-feedback-head {
   display: flex;
   align-items: center;
   margin-bottom: 0.5rem;
+  color: var(--ocb-text);
 }
 .task-feedback {
-  background-color: #f8f9fa;
+  background-color: var(--ocb-task-feedback-bg);
+  color: var(--ocb-text);
 }
 .task-feedback:empty::before {
   content: attr(data-empty);
-  color: #6c757d;
+  color: var(--ocb-task-feedback-text);
 }
 .task-pane-answer:disabled,
 .task-runner-busy .task-pane-answer {
-  background-color: #f1f3f5;
+  background-color: var(--ocb-task-disabled-bg);
   cursor: not-allowed;
+  color: var(--ocb-text);
 }
 .task-empty {
-  color: #6c757d;
+  color: var(--ocb-task-pane-text);
   font-size: 0.9rem;
   padding: 0.75rem 1rem;
-  border: 1px dashed #dee2e6;
+  border: 1px dashed var(--ocb-task-empty-border);
   border-radius: 0.5rem;
   text-align: center;
-  background-color: #fafbfc;
+  background-color: var(--ocb-task-empty-bg);
 }
 .task-card {
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--ocb-task-card-border);
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
-  background-color: #fff;
+  background-color: var(--ocb-task-card-bg);
+  color: var(--ocb-text);
   display: flex;
   align-items: center;
   gap: 0.75rem;
   transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 .task-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--ocb-shadow-hover);
 }
 .task-card-body {
   flex: 1 1 auto;
@@ -875,13 +1442,14 @@ body.hidden-actions .course-card-head-actions {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--ocb-text-strong);
 }
 .task-card-meta {
   font-size: 0.8rem;
-  color: #6c757d;
+  color: var(--ocb-task-card-meta);
 }
 .detail-subsection-head {
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid var(--ocb-task-subsection-border);
   padding-top: 1rem;
   margin-top: 1.5rem;
 }
@@ -897,11 +1465,13 @@ body.hidden-actions .course-card-head-actions {
   top: calc(100% + 8px);
   right: 0;
   width: min(420px, calc(100vw - 1rem));
-  background: #fff;
+  background: var(--ocb-surface);
+  color: var(--ocb-text);
   border: 1px solid var(--ocb-border);
   border-radius: var(--ocb-radius);
   padding: 1rem 1.1rem 1.1rem;
   z-index: 1050;
+  box-shadow: var(--ocb-shadow-soft);
 }
 .streaks-head {
   display: flex;
@@ -913,6 +1483,7 @@ body.hidden-actions .course-card-head-actions {
 .streaks-title {
   font-size: 1.05rem;
   font-weight: 600;
+  color: var(--ocb-text-strong);
 }
 .streaks-stats {
   display: grid;
@@ -921,7 +1492,8 @@ body.hidden-actions .course-card-head-actions {
   margin-bottom: 1rem;
 }
 .streaks-stat {
-  background: #f9fafb;
+  background: var(--ocb-surface-2);
+  color: var(--ocb-text);
   border: 1px solid var(--ocb-border);
   border-radius: 8px;
   padding: 0.5rem 0.6rem;
@@ -931,6 +1503,7 @@ body.hidden-actions .course-card-head-actions {
   font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.1;
+  color: var(--ocb-text-strong);
 }
 .streaks-stat-label {
   color: var(--ocb-muted);
@@ -975,7 +1548,7 @@ body.hidden-actions .course-card-head-actions {
 .streaks-month-dow {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  background: #f9fafb;
+  background: var(--ocb-surface-2);
   border-bottom: 1px solid var(--ocb-border);
   font-size: 0.7rem;
   color: var(--ocb-muted);
@@ -1004,22 +1577,22 @@ body.hidden-actions .course-card-head-actions {
   justify-content: flex-start;
   padding: 3px 5px;
   font-size: 0.72rem;
-  color: #1f2937;
+  color: var(--ocb-cell-day-text);
   font-variant-numeric: tabular-nums;
 }
 .streaks-month-grid > .streaks-cell.empty {
-  background: #fff;
+  background: var(--ocb-cell-empty);
 }
 .streaks-month-grid > .streaks-cell.lvl-0 {
-  background: #ebedf0;
-  color: #6b7280;
+  background: var(--ocb-cell-lvl-0);
+  color: var(--ocb-cell-empty-day-text);
 }
-.streaks-month-grid > .streaks-cell.lvl-1 { color: #1f2937; }
+.streaks-month-grid > .streaks-cell.lvl-1 { color: var(--ocb-text-strong); }
 .streaks-month-grid > .streaks-cell.lvl-2,
 .streaks-month-grid > .streaks-cell.lvl-3,
-.streaks-month-grid > .streaks-cell.lvl-4 { color: #fff; }
+.streaks-month-grid > .streaks-cell.lvl-4 { color: var(--ocb-cell-day-text-light); }
 .streaks-month-grid > .streaks-cell.today {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--ocb-link);
   outline-offset: -2px;
   z-index: 1;
 }
@@ -1030,15 +1603,15 @@ body.hidden-actions .course-card-head-actions {
   line-height: 1;
 }
 /* Green intensity ramp (GitHub-style) */
-.streaks-cell.lvl-1 { background: #c6e48b; }
-.streaks-cell.lvl-2 { background: #7bc96f; }
-.streaks-cell.lvl-3 { background: #239a3b; }
-.streaks-cell.lvl-4 { background: #196127; }
-.streaks-cell.legend-0 { background: #ebedf0; }
-.streaks-cell.legend-1 { background: #c6e48b; }
-.streaks-cell.legend-2 { background: #7bc96f; }
-.streaks-cell.legend-3 { background: #239a3b; }
-.streaks-cell.legend-4 { background: #196127; }
+.streaks-cell.lvl-1 { background: var(--ocb-cell-lvl-1); }
+.streaks-cell.lvl-2 { background: var(--ocb-cell-lvl-2); }
+.streaks-cell.lvl-3 { background: var(--ocb-cell-lvl-3); }
+.streaks-cell.lvl-4 { background: var(--ocb-cell-lvl-4); }
+.streaks-cell.legend-0 { background: var(--ocb-cell-lvl-0); }
+.streaks-cell.legend-1 { background: var(--ocb-cell-lvl-1); }
+.streaks-cell.legend-2 { background: var(--ocb-cell-lvl-2); }
+.streaks-cell.legend-3 { background: var(--ocb-cell-lvl-3); }
+.streaks-cell.legend-4 { background: var(--ocb-cell-lvl-4); }
 .streaks-legend {
   display: flex;
   align-items: center;
@@ -1121,13 +1694,14 @@ body.hidden-actions .course-card-head-actions {
   padding: 0.4rem 0.5rem;
   border: 1px solid var(--ocb-border);
   border-radius: var(--ocb-radius);
-  background: #fff;
+  background: var(--ocb-surface);
+  color: var(--ocb-text);
   min-height: calc(2.25rem + 2px);
   cursor: text;
 }
 .ocb-chip-input-wrap:focus-within {
-  border-color: #86b7fe;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+  border-color: var(--ocb-info-icon);
+  box-shadow: 0 0 0 0.2rem var(--ocb-focus-ring);
 }
 .ocb-chip-list {
   display: flex;
@@ -1144,8 +1718,8 @@ body.hidden-actions .course-card-head-actions {
   align-items: center;
   gap: 0.3rem;
   padding: 0.2rem 0.55rem;
-  background: #eef2ff;
-  color: #1f2937;
+  background: var(--ocb-chip-bg);
+  color: var(--ocb-chip-text);
   border-radius: 999px;
   font-size: 0.8rem;
   line-height: 1.2;
@@ -1168,7 +1742,7 @@ body.hidden-actions .course-card-head-actions {
   line-height: 1;
   cursor: pointer;
 }
-.ocb-chip-remove:hover { background: rgba(0, 0, 0, 0.08); color: #1f2937; }
+.ocb-chip-remove:hover { background: var(--ocb-surface-3); color: var(--ocb-text-strong); }
 .ocb-chip-input-wrap input[type="text"] {
   flex: 1 1 8rem;
   min-width: 8rem;
@@ -1177,5 +1751,6 @@ body.hidden-actions .course-card-head-actions {
   padding: 0.15rem 0.25rem;
   font-size: 0.9rem;
   background: transparent;
+  color: var(--ocb-text);
 }
 
