@@ -1,0 +1,23 @@
+{
+  "id": "b4ccfb56-842e-4fb4-ad3a-c34c22f1629f",
+  "title": "Ui testing",
+  "description": "this is an description",
+  "createdAt": "2026-06-12T09:07:37.840Z",
+  "updatedAt": "2026-06-12T09:07:37.840Z",
+  "lessons": [],
+  "authors": [
+    {
+      "authorName": "rayan",
+      "authorLink": "https://www.linkedin.com/in/rayanul-kader-chowdhury"
+    }
+  ],
+  "tags": [
+    "testing",
+    "ui"
+  ],
+  "courseLanguage": [
+    "English",
+    "bangla"
+  ],
+  "tasks": []
+}
