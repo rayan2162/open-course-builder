@@ -1607,25 +1607,6 @@ body.hidden-actions .course-card-head-actions {
 .streaks-cell.lvl-2 { background: var(--ocb-cell-lvl-2); }
 .streaks-cell.lvl-3 { background: var(--ocb-cell-lvl-3); }
 .streaks-cell.lvl-4 { background: var(--ocb-cell-lvl-4); }
-.streaks-cell.legend-0 { background: var(--ocb-cell-lvl-0); }
-.streaks-cell.legend-1 { background: var(--ocb-cell-lvl-1); }
-.streaks-cell.legend-2 { background: var(--ocb-cell-lvl-2); }
-.streaks-cell.legend-3 { background: var(--ocb-cell-lvl-3); }
-.streaks-cell.legend-4 { background: var(--ocb-cell-lvl-4); }
-.streaks-legend {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  justify-content: flex-end;
-  margin-top: 0.6rem;
-  font-size: 0.72rem;
-}
-.streaks-legend .streaks-cell {
-  width: 11px;
-  height: 11px;
-  border-radius: 2px;
-  display: inline-block;
-}
 
 @media (max-width: 575.98px) {
   .streaks-panel { right: -0.5rem; }
